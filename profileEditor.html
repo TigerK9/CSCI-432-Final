@@ -24,6 +24,11 @@
             justify-content: space-between;
             align-items: center;
             border-radius: 8px; /* This will round the corners */
+            position: fixed; /* Makes the taskbar stick to the viewport */
+            top: 16px; /* Pushed down by the body's padding */
+            left: 16px; /* Pushed from the left by the body's padding */
+            right: 16px; /* Pushed from the right by the body's padding */
+            z-index: 1000; /* Ensures the taskbar stays on top of other content */
         }
 
         .taskbar-icon {
@@ -47,8 +52,9 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            margin-top: 64px; /* Adjust this value to the taskbar's height to prevent content overlap */
         }
-
+        
         .profile-editor-box {
             background-color: #D9D9D9;
             padding: 30px;
@@ -115,35 +121,6 @@
             width: 100%;
             box-sizing: border-box;
         }
-
-        /* The following are no longer needed since we are using Bootstrap Icons */
-        /*
-        .icon {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-            vertical-align: middle;
-        }
-
-        .icon-home {
-            content: "🏠";
-            font-size: 20px;
-            line-height: 24px;
-            text-align: center;
-            width: auto;
-        }
-
-        .icon-profile {
-            content: "👤";
-            font-size: 20px;
-            line-height: 24px;
-            text-align: center;
-            width: auto;
-        }
-        */
     </style>
 </head>
 <body>
