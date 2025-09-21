@@ -7,19 +7,186 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #878E76; /* Background color */
+            display: flex;
+            flex-direction: column; /* Arrange content vertically */
+            min-height: 100vh;
+        }
+
+        .taskbar {
+            background-color: #555; /* Darker taskbar for contrast */
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .taskbar-icon {
+            color: white;
+            text-decoration: none;
+            font-size: 24px;
+            padding: 5px;
+        }
+
+        .taskbar-left .taskbar-icon {
+            margin-right: 15px;
+        }
+
+        .taskbar-right .taskbar-icon {
+            margin-left: 15px;
+        }
+
+        .content-area {
+            flex-grow: 1; /* Allows content to take up remaining vertical space */
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            padding: 20px;
         }
-        h1 {
-            color: #333;
+
+        .profile-editor-box {
+            background-color: #D9D9D9; /* Box fill color */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 30px; /* Space between profile picture and input fields */
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .profile-picture-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-picture-placeholder {
+            width: 150px;
+            height: 150px;
+            background-color: #aaa; /* Placeholder color for the image */
+            border-radius: 50%; /* Makes it round */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            overflow: hidden; /* Ensures image fits within the circle */
+        }
+
+        .profile-picture-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures the image covers the area */
+        }
+
+        .profile-input-fields {
+            display: flex;
+            flex-direction: column; /* Arrange input fields vertically */
+            gap: 15px; /* Space between input fields */
+            flex-grow: 1; /* Allows this section to take up remaining width */
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="email"],
+        .input-group input[type="tel"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100%; /* Make inputs take full width of their container */
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        /* Basic icon styling - you'd typically use an icon library like Font Awesome */
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            vertical-align: middle;
+        }
+
+        /* Example icon styles (replace with actual SVG/PNG or Font Awesome classes) */
+        .icon-home {
+            /* For a simple text-based icon */
+            content: "🏠";
+            font-size: 20px;
+            line-height: 24px;
+            text-align: center;
+            width: auto;
+        }
+
+        .icon-profile {
+            /* For a simple text-based icon */
+            content: "👤";
+            font-size: 20px;
+            line-height: 24px;
+            text-align: center;
+            width: auto;
         }
     </style>
 </head>
 <body>
-    <h1>Login Page</h1>
+    <div class="taskbar">
+        <div class="taskbar-left">
+            <a href="homePage.html" class="taskbar-icon icon-home" title="Home">🏠</a>
+        </div>
+        <div class="taskbar-right">
+            <a href="profileEditor.html" class="taskbar-icon icon-profile" title="Profile">👤</a>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div class="profile-editor-box">
+            <div class="profile-picture-section">
+                <div class="profile-picture-placeholder">
+                    <span>Click to change picture</span>
+                </div>
+                <button>Upload New Photo</button>
+            </div>
+
+            <div class="profile-input-fields">
+                <div class="input-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" placeholder="Enter your name">
+                </div>
+
+                <div class="input-group">
+                    <label for="description">Description:</label>
+                    <input type="text" id="description" name="description" placeholder="A brief description of yourself">
+                </div>
+
+                <div class="input-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="your@example.com">
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="tel" id="phone" name="phone" placeholder="123-456-7890">
+                </div>
+
+                <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">Save Changes</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
