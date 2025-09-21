@@ -1,10 +1,4 @@
 {
-<<<<<<< HEAD
-  "name": "fall25-assignment-2",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-=======
   "name": "csci-432-final",
   "private": true,
   "version": "1.0.0",
@@ -21,17 +15,12 @@
   "author": "",
   "type": "commonjs",
   "main": "index.js",
->>>>>>> 05cf64bd44636df9dfe0e52085f4affe8e9a2920
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
-<<<<<<< HEAD
-  "devDependencies": {
-=======
     "devDependencies": {
->>>>>>> 05cf64bd44636df9dfe0e52085f4affe8e9a2920
     "vite": "^7.1.2"
   },
   "dependencies": {
