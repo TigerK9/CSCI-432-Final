@@ -1,0 +1,97 @@
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #9DB4AB;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.dashboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #e8e7e7;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard .icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #555;
+    transition: color 0.2s ease;
+}
+
+.dashboard .icon:hover {
+    color: #000;
+}
+
+/* Grid layout */
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1.5rem;
+    width: 80%;
+    max-width: 900px;
+    flex-grow: 1;
+    margin: 2rem auto;
+}
+
+.box {
+    background: #e8e7e7;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.meeting-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #333;
+    align-self: flex-start; /* top-left */
+}
+
+.meeting-description {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #555;
+    font-size: 0.95rem;
+    padding: 0.5rem;
+}
+
+.meeting-datetime {
+    font-size: 0.85rem;
+    color: #777;
+    text-align: center;
+    margin-top: auto;
+}
+
+/* Special styling for "new meeting" */
+.new-meeting {
+    background: linear-gradient(135deg, #878E76, #BBDB9B);
+    color: #555;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
+}
+
+.new-meeting .plus {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
