@@ -171,30 +171,22 @@
         <!-- Left Sidebar: Agenda -->
         <div class="sidebar" style="margin-right: 20px;">
             <h2>Agenda</h2>
-            <div class="agenda-item">1. Call to order</div>
-            <div class="agenda-item">2. Approval of previous minutes</div>
-            <div class="agenda-item">3. Motion: Approve new budget for Q3</div>
-            <div class="agenda-item">4. Report from the Finance Committee</div>
-            <div class="agenda-item">5. New Business</div>
+            <div id="agenda-container"></div>
         </div>
 
         <!-- Center: Current Motion -->
         <div class="center-content">
             <div class="current-motion-box">
-                <h3>Current Motion:</h3>
-                <p>
-                    "I move to approve the new budget for the third quarter of this fiscal year."
-                </p>
-                <p style="font-style: italic; color: #555;">(Moved by: Jane Doe)</p>
+                <h3 id="motion-name"></h3>
+                <p id="motion-description"></p>
+                <p id="motion-creator" style="font-style: italic; color: #555;"></p>
             </div>
         </div>
 
         <!-- Right Sidebar: Motion Queue -->
         <div class="sidebar" style="margin-left: 20px;">
             <h2>Motion Queue</h2>
-            <div class="motion-item">1. Motion to table the discussion</div>
-            <div class="motion-item">2. Motion to amend the previous motion</div>
-            <div class="motion-item">3. Motion to end the debate</div>
+            <div id="motion-queue-container"></div>
         </div>
     </div>
 
@@ -208,5 +200,6 @@
         </button>
     </div>
 
+    <script src="src/meeting.js"></script>
 </body>
 </html>
