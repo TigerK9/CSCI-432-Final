@@ -87,7 +87,7 @@
       </div>
 
       <!-- Password Input -->
-      <div class="mb-4">
+      <div class="mb-8"> <!-- Increased margin bottom since Confirm Password is gone -->
         <label for="password" class="block mb-1 text-sm font-medium text-gray-600">Password</label>
         <input 
           type="password" 
@@ -98,19 +98,7 @@
         />
       </div>
 
-      <!-- Confirm Password Input -->
-      <div class="mb-4">
-        <label for="confirm-password" class="block mb-1 text-sm font-medium text-gray-600">Confirm Password</label>
-        <input 
-          type="password" 
-          id="confirm-password" 
-          placeholder="Confirm your password" 
-          required 
-          class="w-full p-3 border border-gray-300 rounded-lg text-base outline-none transition duration-300 input-focus" 
-        />
-        <!-- Password mismatch error message area -->
-        <div id="passwordMatchError" class="mt-1 text-sm text-red-600 h-4"></div>
-      </div>
+      <!-- The Confirm Password field and error message have been removed -->
 
       <button 
         type="submit" 
@@ -139,34 +127,18 @@
   </div>
 
   <script>
-    // Get references to all necessary elements
+    // Get references to all necessary elements (confirm password elements removed)
     const nameInput = document.getElementById('name');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
-    const confirmPasswordInput = document.getElementById('confirm-password');
     const createAccountBtn = document.getElementById('createAccountBtn');
-    const errorDiv = document.getElementById('passwordMatchError');
 
-    // Function to check all validation rules
+    // Function to check all validation rules (now only checking for three filled fields)
     const checkFormValidity = () => {
-      // 1. Check if all fields are filled
-      const allFieldsFilled = nameInput.value.trim() !== '' &&
+      // Check if all three required fields are filled
+      const isFormValid = nameInput.value.trim() !== '' &&
                               emailInput.value.trim() !== '' &&
-                              passwordInput.value.trim() !== '' &&
-                              confirmPasswordInput.value.trim() !== '';
-
-      // 2. Check if passwords match
-      const passwordsMatch = passwordInput.value === confirmPasswordInput.value;
-
-      // Update the error message based on password match
-      if (confirmPasswordInput.value.trim() !== '' && !passwordsMatch) {
-          errorDiv.textContent = "Passwords do not match.";
-      } else {
-          errorDiv.textContent = "";
-      }
-
-      // Check final validity state
-      const isFormValid = allFieldsFilled && passwordsMatch;
+                              passwordInput.value.trim() !== '';
 
       if (isFormValid) {
         // If valid: apply the active color, enable the button
@@ -182,7 +154,7 @@
     };
 
     // Array of inputs to listen to
-    const inputs = [nameInput, emailInput, passwordInput, confirmPasswordInput];
+    const inputs = [nameInput, emailInput, passwordInput];
 
     // Attach the checkFormValidity function to the 'input' event for real-time validation
     inputs.forEach(input => {
