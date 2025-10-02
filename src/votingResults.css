@@ -1,0 +1,157 @@
+/* General Body and Layout */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #878E76; /* Required Background color */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 16px; 
+    box-sizing: border-box;
+    position: relative; 
+}
+
+/* Taskbar Styling */
+.taskbar {
+    background-color: #555; /* Taskbar color */
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 1000;
+}
+
+.taskbar-icon {
+    color: white;
+    text-decoration: none;
+    font-size: 24px;
+    padding: 5px;
+}
+
+.taskbar-left .taskbar-icon {
+    margin-right: 15px;
+}
+
+.taskbar-right .taskbar-icon {
+    margin-left: 15px;
+}
+
+/* Main Content Area */
+.main-container {
+    flex-grow: 1;
+    padding: 20px;
+    margin-top: 64px; /* Space for the fixed taskbar */
+    width: 100%;
+    max-width: 900px; 
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Motion Title */
+.motion-title {
+    color: #333;
+    /* --- UPDATED --- */
+    font-size: 1.8em; /* Smaller font size */
+    background-color: #D9D9D9; /* Same as motion description */
+    padding: 15px 25px; /* Added padding */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Soft shadow */
+    /* --- END UPDATED --- */
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Wrapper for Chart and Description */
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers the pie chart and description horizontally */
+    width: 100%;
+    gap: 20px;
+}
+
+/* Pie Chart Container */
+.chart-container {
+    /* --- UPDATED --- */
+    background-color: #D9D9D9; /* Same as motion description */
+    /* --- END UPDATED --- */
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px; /* Constrain chart size */
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#voteSummary {
+    margin-top: 15px;
+    font-size: 1.1em;
+}
+
+#voteSummary p {
+    margin: 5px 0;
+}
+
+/* Motion Description Box (Centered and Wider) */
+.motion-description-box {
+    background-color: #D9D9D9; /* Light grey box color */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    width: 100%; /* Make it wide */
+    max-width: 700px; /* Set a max width for readability */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.motion-description-box h2 {
+    margin-top: 0;
+    color: #555;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+/* Remove the unnecessary bottom-section wrapper styling for alignment */
+.bottom-section {
+    display: flex;
+    justify-content: center; /* Center the description box */
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 70px; /* Add margin to account for the fixed button at the bottom */
+}
+
+/* Back to Meeting Button (Fixed to Bottom Right of the Viewport) */
+.back-button {
+    /* Fixed position to be in the bottom-right of the page */
+    position: fixed;
+    right: 16px; /* 16px from the right (matches body padding) */
+    bottom: 16px; /* 16px from the bottom (matches body padding) */
+    z-index: 999; /* Ensure it's above everything except the taskbar */
+    
+    /* Style properties */
+    text-decoration: none;
+    background-color: #555; 
+    color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    white-space: nowrap; 
+}
+
+.back-button:hover {
+    background-color: #333;
+}
