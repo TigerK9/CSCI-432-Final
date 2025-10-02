@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | RONR</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to match the provided gradient and ensure font consistency */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom gradient colors from template */
+        .bg-custom-gradient {
+            background: linear-gradient(45deg, #878E76, #BBDB9B);
+        }
+        /* Custom button and link colors from template */
+        .btn-primary {
+            background-color: #8D9D90; /* Default color */
+        }
+        .btn-primary:hover {
+            background-color: #667b6a; /* Hover color */
+        }
+
+        /* --- Custom Validation Styles --- */
+        /* This class applies the hover color when validation passes */
+        .btn-valid-state {
+            background-color: #667b6a;
+            cursor: pointer;
+            opacity: 1 !important; /* Ensure it's fully visible when active */
+        }
+        /* This class visually indicates the button is disabled */
+        .btn-disabled-state {
+            opacity: 0.5;
+            cursor: not-allowed;
+            /* Override the hover behavior for the disabled state */
+            pointer-events: none; /* Prevents :hover styles when disabled */
+        }
+
+        .text-link-color {
+            color: #8D9D90;
+        }
+        /* Overriding default focus ring for inputs */
+        .input-focus:focus {
+             border-color: #667eea; /* Matches the original focus color */
+             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        .divider-line {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #ccc;
+            margin: 0 0.75rem;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen bg-custom-gradient p-4">
+  
+  <!-- Registration Container -->
+  <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
+    
+    <h2 class="text-center mb-6 text-2xl font-semibold text-gray-800">Sign Up</h2>
+
+    <form>
+      <!-- Name Input -->
+      <div class="mb-4">
+        <label for="name" class="block mb-1 text-sm font-medium text-gray-600">Full Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          placeholder="Enter your full name" 
+          required 
+          class="w-full p-3 border border-gray-300 rounded-lg text-base outline-none transition duration-300 input-focus" 
+        />
+      </div>
+
+      <!-- Email Input -->
+      <div class="mb-4">
+        <label for="email" class="block mb-1 text-sm font-medium text-gray-600">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          placeholder="Enter your email" 
+          required 
+          class="w-full p-3 border border-gray-300 rounded-lg text-base outline-none transition duration-300 input-focus" 
+        />
+      </div>
+
+      <!-- Password Input -->
+      <div class="mb-4">
+        <label for="password" class="block mb-1 text-sm font-medium text-gray-600">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="Create a password" 
+          required 
+          class="w-full p-3 border border-gray-300 rounded-lg text-base outline-none transition duration-300 input-focus" 
+        />
+      </div>
+
+      <!-- Confirm Password Input -->
+      <div class="mb-4">
+        <label for="confirm-password" class="block mb-1 text-sm font-medium text-gray-600">Confirm Password</label>
+        <input 
+          type="password" 
+          id="confirm-password" 
+          placeholder="Confirm your password" 
+          required 
+          class="w-full p-3 border border-gray-300 rounded-lg text-base outline-none transition duration-300 input-focus" 
+        />
+        <!-- Password mismatch error message area -->
+        <div id="passwordMatchError" class="mt-1 text-sm text-red-600 h-4"></div>
+      </div>
+
+      <button 
+        type="submit" 
+        id="createAccountBtn" 
+        disabled 
+        class="w-full p-3 mt-4 mb-6 btn-primary text-white font-semibold rounded-lg text-lg transition duration-300 hover:scale-[1.01] active:scale-[0.99] btn-disabled-state"
+      >
+        Create Account
+      </button>
+    </form>
+
+    <!-- Links and Divider -->
+    <div class="text-center text-sm">
+      <div class="flex items-center text-center text-gray-400 my-4 text-sm">
+        <div class="divider-line"></div>
+        <span class="px-2">OR</span>
+        <div class="divider-line"></div>
+      </div>
+      
+      <p>
+        Already have an account? 
+        <a href="login.html" class="text-link-color hover:underline font-medium">Sign In</a>
+      </p>
+    </div>
+    
+  </div>
+
+  <script>
+    // Get references to all necessary elements
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    const createAccountBtn = document.getElementById('createAccountBtn');
+    const errorDiv = document.getElementById('passwordMatchError');
+
+    // Function to check all validation rules
+    const checkFormValidity = () => {
+      // 1. Check if all fields are filled
+      const allFieldsFilled = nameInput.value.trim() !== '' &&
+                              emailInput.value.trim() !== '' &&
+                              passwordInput.value.trim() !== '' &&
+                              confirmPasswordInput.value.trim() !== '';
+
+      // 2. Check if passwords match
+      const passwordsMatch = passwordInput.value === confirmPasswordInput.value;
+
+      // Update the error message based on password match
+      if (confirmPasswordInput.value.trim() !== '' && !passwordsMatch) {
+          errorDiv.textContent = "Passwords do not match.";
+      } else {
+          errorDiv.textContent = "";
+      }
+
+      // Check final validity state
+      const isFormValid = allFieldsFilled && passwordsMatch;
+
+      if (isFormValid) {
+        // If valid: apply the active color, enable the button
+        createAccountBtn.classList.add('btn-valid-state');
+        createAccountBtn.classList.remove('btn-disabled-state');
+        createAccountBtn.disabled = false;
+      } else {
+        // If invalid: revert to default color, disable the button
+        createAccountBtn.classList.remove('btn-valid-state');
+        createAccountBtn.classList.add('btn-disabled-state');
+        createAccountBtn.disabled = true;
+      }
+    };
+
+    // Array of inputs to listen to
+    const inputs = [nameInput, emailInput, passwordInput, confirmPasswordInput];
+
+    // Attach the checkFormValidity function to the 'input' event for real-time validation
+    inputs.forEach(input => {
+      input.addEventListener('input', checkFormValidity);
+    });
+
+    // Optional: Prevent default submission if you haven't implemented form handling yet
+    createAccountBtn.closest('form').addEventListener('submit', (e) => {
+        // Only prevent submission if the button is currently disabled
+        if (createAccountBtn.disabled) {
+            e.preventDefault();
+        } else {
+            console.log("Form is valid and ready to submit!");
+            // In a real app, you would send data to the server here
+            // e.preventDefault(); // Uncomment this line if you want to prevent a full page reload for testing
+        }
+    });
+
+    // Run once on load to initialize button state
+    window.onload = checkFormValidity;
+  </script>
+</body>
+</html>
