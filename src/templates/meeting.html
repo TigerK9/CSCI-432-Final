@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robert's Rules Meeting</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <link rel="stylesheet" href="../css/meeting_style.css">
+</head>
+<body>
+
+    <div class="taskbar">
+        <div class="taskbar-left">
+            <a href="home.html" class="taskbar-icon" title="Home">
+                <i class="bi-house"></i>
+            </a>
+        </div>
+        <div class="taskbar-right">
+            <a href="profileEditor.html" class="taskbar-icon" title="Profile">
+                <i class="bi-person"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar sidebar-left">
+            <h2>Agenda</h2>
+            <div id="agenda-container"></div>
+        </div>
+
+        <div class="center-content">
+            <div class="current-motion-box">
+                <h3 id="motion-name"></h3>
+                <p id="motion-description"></p>
+                <p id="motion-creator" class="motion-creator-text"></p>
+            </div>
+        </div>
+
+        <div class="sidebar sidebar-right">
+            <h2>Motion Queue</h2>
+            <div id="motion-queue-container"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="vote-button aye">AYE</button>
+        <button class="vote-button no">NO</button>
+        <button class="vote-button hand">
+            <i class="bi bi-hand-raised raise-hand-icon"></i>
+            Raise Hand
+        </button>
+    </div>
+
+    <script src="../javascript/meeting_script.js"></script>
+
+</body>
+</html>

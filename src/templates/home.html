@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meetings | RONR</title>
+  
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    rel="stylesheet"
+  />
+  
+  <!-- Link to external CSS file -->
+  <link rel="stylesheet" href="../css/home_style.css" />
+</head>
+<body>
+
+  <div class="taskbar">
+    <div class="taskbar-left">
+      <a href="home.html" class="taskbar-icon" title="Home">
+        <i class="bi-house"></i>
+      </a>
+    </div>
+    <div class="taskbar-right">
+      <a href="profileEditor.html" class="taskbar-icon" title="Profile">
+        <i class="bi-person"></i>
+      </a>
+    </div>
+  </div>
+
+  <div class="grid-container">
+    <a href="meeting.html" class="box-link">
+      <div class="box">
+        <div class="meeting-name">Meeting 1</div>
+        <div class="meeting-description">Project kickoff discussion</div>
+        <div class="meeting-datetime">Sept 25, 2025 · 2:00 PM</div>
+      </div>
+    </a>
+    <a href="meeting.html" class="box-link">
+      <div class="box">
+        <div class="meeting-name">Meeting 2</div>
+        <div class="meeting-description">Design brainstorming session</div>
+        <div class="meeting-datetime">Sept 26, 2025 · 11:00 AM</div>
+      </div>
+    </a>
+    <a href="meeting.html" class="box-link">
+      <div class="box">
+        <div class="meeting-name">Meeting 3</div>
+        <div class="meeting-description">Weekly status update</div>
+        <div class="meeting-datetime">Sept 27, 2025 · 9:30 AM</div>
+      </div>
+    </a>
+    <!-- New Meeting Card - Requires JS event listener -->
+    <div class="box new-meeting" id="newMeetingBox">
+      <div class="plus">+</div>
+      <div>New Meeting</div>
+    </div>
+  </div>
+
+  <!-- Popup Modal -->
+  <div id="newMeetingModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Create a New Meeting</h2>
+      <form id="meetingForm">
+        <label for="meetingName">Meeting Name:</label>
+        <input type="text" id="meetingName" name="meetingName" required>
+
+        <label for="meetingDate">Date & Time:</label>
+        <input type="datetime-local" id="meetingDate" name="meetingDate" required>
+
+        <label for="meetingLink">Meeting Link:</label>
+        <input type="url" id="meetingLink" name="meetingLink" placeholder="https://..." required>
+
+        <button type="submit">Save Meeting</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Link to external JavaScript file -->
+  <script src="../javascript/home_script.js"></script>
+</body>
+</html>

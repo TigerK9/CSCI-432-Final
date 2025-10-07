@@ -1,0 +1,49 @@
+/* Custom styles to match the provided gradient and ensure font consistency */
+body {
+    font-family: 'Inter', sans-serif;
+}
+/* Custom gradient colors from template */
+.bg-custom-gradient {
+    background: linear-gradient(45deg, #878E76, #BBDB9B);
+}
+/* Custom button and link colors from template */
+.btn-primary {
+    background-color: #8D9D90; /* Default color */
+}
+.btn-primary:hover {
+    background-color: #667b6a; /* Hover color */
+}
+
+/* --- Custom Validation Styles --- */
+/* This class applies the hover color when validation passes */
+.btn-valid-state {
+    background-color: #667b6a;
+    cursor: pointer;
+    opacity: 1 !important; /* Ensure it's fully visible when active */
+    /* Re-enable hover effect for valid state */
+    pointer-events: auto !important; 
+}
+/* This class visually indicates the button is disabled */
+.btn-disabled-state {
+    opacity: 0.5;
+    cursor: not-allowed;
+    /* Override the hover behavior for the disabled state */
+    pointer-events: none; /* Prevents :hover styles when disabled */
+    /* Ensure the background is the default when disabled, even on hover */
+    background-color: #8D9D90; 
+}
+
+.text-link-color {
+    color: #8D9D90;
+}
+/* Overriding default focus ring for inputs */
+.input-focus:focus {
+     border-color: #667eea; /* Matches the original focus color */
+     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+.divider-line {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #ccc;
+    margin: 0 0.75rem;
+}
