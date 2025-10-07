@@ -1,0 +1,139 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #878E76; /* Background color */
+    display: flex;
+    flex-direction: column; /* Arrange content vertically */
+    min-height: 100vh;
+    padding: 16px; /* This adds a 16px gap on all sides */
+}
+
+.taskbar {
+    background-color: #555;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px; /* This will round the corners */
+    position: fixed; /* Makes the taskbar stick to the viewport */
+    top: 16px; /* Pushed down by the body's padding */
+    left: 16px; /* Pushed from the left by the body's padding */
+    right: 16px; /* Pushed from the right by the body's padding */
+    z-index: 1000; /* Ensures the taskbar stays on top of other content */
+}
+
+.taskbar-icon {
+    color: white;
+    text-decoration: none;
+    font-size: 24px;
+    padding: 5px;
+}
+
+.taskbar-left .taskbar-icon {
+    margin-right: 15px;
+}
+
+.taskbar-right .taskbar-icon {
+    margin-left: 15px;
+}
+
+.content-area {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    margin-top: 64px; /* Adjust this value to the taskbar's height to prevent content overlap */
+}
+
+.profile-editor-box {
+    background-color: #D9D9D9;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 30px;
+    max-width: 800px;
+    width: 100%;
+}
+
+.profile-picture-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-picture-placeholder {
+    width: 150px;
+    height: 150px;
+    background-color: #aaa;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 14px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.profile-picture-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-input-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-grow: 1;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.input-group input[type="text"],
+.input-group input[type="email"],
+.input-group input[type="tel"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.saved-data {
+    font-weight: normal;
+    margin-left: 8px;
+    color: #333;
+}
+
+/* Styling for the Save button container (moved from inline) */
+.button-container {
+    display: flex;
+    justify-content: center;
+}
+
+/* Styling for the Save button itself (moved from inline) */
+.save-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    width: auto;
+}

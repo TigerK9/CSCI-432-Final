@@ -1,0 +1,80 @@
+/* Define a custom font */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #878E76; /* UPDATED: New body background color */
+    /* Add margin to the top to account for the fixed taskbar */
+    padding-top: 80px; 
+}
+/* Custom class for the new header color */
+.bg-dark-header {
+    background-color: #555; /* UPDATED: New header background color */
+}
+/* Custom scrollbar for aesthetic, if supported */
+#motion-list-container, #motion-details {
+    scrollbar-width: thin;
+    scrollbar-color: #588157 #f7f7f7;
+}
+.motion-item:hover {
+    background-color: #e9ecef;
+}
+.motion-item.active {
+    background-color: #588157;
+    color: white;
+}
+.motion-item.active .time-badge, .motion-item.active .result-badge {
+    background-color: white;
+    color: #588157;
+    font-weight: 700;
+}
+.time-badge {
+    background-color: #d8f8e1;
+    color: #4a755a;
+}
+.result-badge {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* --- TASKBAR STYLES --- */
+.taskbar {
+    background-color: #555;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.taskbar-icon {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem;
+    padding: 5px;
+    transition: color 0.2s;
+}
+
+.taskbar-icon:hover {
+    color: #bbdb9b; /* A light, contrasting color on hover */
+}
+
+.taskbar-left .taskbar-icon {
+    margin-right: 15px;
+}
+
+.taskbar-right .taskbar-icon {
+    margin-left: 15px;
+}
+/* --- END OF TASKBAR STYLES --- */
+
+/* Adjust the header to be static and centered */
+header {
+    position: static;
+    padding: 0; /* Remove header padding as we'll pad the content inside */
+}

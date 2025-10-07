@@ -1,0 +1,192 @@
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #9DB4AB;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Taskbar Styles --- (from inline HTML) */
+.taskbar {
+    background-color: #555;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 1000;
+}
+
+.taskbar-icon {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem;
+    padding: 5px;
+}
+
+.taskbar-left .taskbar-icon {
+    margin-right: 15px;
+}
+
+.taskbar-right .taskbar-icon {
+    margin-left: 15px;
+}
+/* --- End Taskbar Styles --- */
+
+
+.dashboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #e8e7e7;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard .icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #555;
+    transition: color 0.2s ease;
+}
+
+.dashboard .icon:hover {
+    color: #000;
+}
+
+/* Grid layout (Updated to include margin-top for taskbar) */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-auto-rows: min-content;
+    column-gap: 1.5rem;
+    row-gap: 1.5rem;
+    width: 80%;
+    max-width: 900px;
+    flex-grow: 1;
+    margin: 2rem auto;
+    margin-top: 6rem; /* Ensures content clears the fixed taskbar */
+}
+
+.box-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.box {
+    background: #e8e7e7;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.2rem 1rem; /* Adjusted padding from 1rem to match provided HTML */
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 17rem; /* Added height from provided HTML */
+}
+
+.box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.meeting-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #333;
+    align-self: flex-start;
+}
+
+.meeting-description {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #555;
+    font-size: 0.95rem;
+    padding: 0.5rem;
+}
+
+.meeting-datetime {
+    font-size: 0.85rem;
+    color: #777;
+    text-align: center;
+    margin-top: auto;
+}
+
+/* Special styling for "new meeting" */
+.new-meeting {
+    background: linear-gradient(135deg, #878E76, #BBDB9B);
+    color: #555;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
+}
+
+.new-meeting .plus {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+/* --- Modal Styles --- (from inline HTML) */
+.modal {
+    display: none; /* hidden by default */
+    position: fixed;
+    z-index: 2000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    align-self: flex-end;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: black;
+}
+
+.modal-content input, .modal-content button {
+    padding: 8px;
+    font-size: 1rem;
+}
+
+.modal-content button {
+    background: #878E76;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.modal-content button:hover {
+    background: #6e7560;
+}

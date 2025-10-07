@@ -1,3 +1,9 @@
+/* Define CSS Variables for primary colors */
+:root {
+    --yes-color: #4CAF50; /* Green for Yes */
+    --no-color: #F44336;  /* Red for No */
+}
+
 /* General Body and Layout */
 body {
     font-family: Arial, sans-serif;
@@ -59,13 +65,11 @@ body {
 /* Motion Title */
 .motion-title {
     color: #333;
-    /* --- UPDATED --- */
-    font-size: 1.8em; /* Smaller font size */
-    background-color: #D9D9D9; /* Same as motion description */
-    padding: 15px 25px; /* Added padding */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Soft shadow */
-    /* --- END UPDATED --- */
+    font-size: 1.8em; 
+    background-color: #D9D9D9; 
+    padding: 15px 25px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); 
     margin-bottom: 20px;
     text-align: center;
 }
@@ -74,20 +78,18 @@ body {
 .content-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centers the pie chart and description horizontally */
+    align-items: center; 
     width: 100%;
     gap: 20px;
 }
 
 /* Pie Chart Container */
 .chart-container {
-    /* --- UPDATED --- */
-    background-color: #D9D9D9; /* Same as motion description */
-    /* --- END UPDATED --- */
+    background-color: #D9D9D9; 
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 400px; /* Constrain chart size */
+    max-width: 400px; 
     width: 100%;
     margin-bottom: 20px;
     text-align: center;
@@ -102,14 +104,23 @@ body {
     margin: 5px 0;
 }
 
+/* NEW: Apply colors from CSS variables to the summary text */
+#voteSummary p.yes-votes {
+    color: var(--yes-color); 
+}
+
+#voteSummary p.no-votes {
+    color: var(--no-color); 
+}
+
 /* Motion Description Box (Centered and Wider) */
 .motion-description-box {
-    background-color: #D9D9D9; /* Light grey box color */
+    background-color: #D9D9D9; 
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    width: 100%; /* Make it wide */
-    max-width: 700px; /* Set a max width for readability */
+    width: 100%; 
+    max-width: 700px; 
     margin-left: auto;
     margin-right: auto;
 }
@@ -122,24 +133,21 @@ body {
     margin-bottom: 10px;
 }
 
-/* Remove the unnecessary bottom-section wrapper styling for alignment */
 .bottom-section {
     display: flex;
-    justify-content: center; /* Center the description box */
+    justify-content: center; 
     width: 100%;
     margin-top: 20px;
-    margin-bottom: 70px; /* Add margin to account for the fixed button at the bottom */
+    margin-bottom: 70px; 
 }
 
 /* Back to Meeting Button (Fixed to Bottom Right of the Viewport) */
 .back-button {
-    /* Fixed position to be in the bottom-right of the page */
     position: fixed;
-    right: 16px; /* 16px from the right (matches body padding) */
-    bottom: 16px; /* 16px from the bottom (matches body padding) */
-    z-index: 999; /* Ensure it's above everything except the taskbar */
+    right: 16px; 
+    bottom: 16px; 
+    z-index: 999; 
     
-    /* Style properties */
     text-decoration: none;
     background-color: #555; 
     color: white;

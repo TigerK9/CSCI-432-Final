@@ -1,0 +1,158 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #878E76;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 16px;
+}
+
+.taskbar {
+    background-color: #555;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 1000;
+}
+
+.taskbar-icon {
+    color: white;
+    text-decoration: none;
+    font-size: 24px;
+    padding: 5px;
+}
+
+.taskbar-left .taskbar-icon {
+    margin-right: 15px;
+}
+
+.taskbar-right .taskbar-icon {
+    margin-left: 15px;
+}
+
+.main-container {
+    flex-grow: 1;
+    display: flex;
+    padding: 20px;
+    margin-top: 64px;
+}
+
+.sidebar {
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 250px;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Added margin styling to the sidebars using classes in HTML */
+.sidebar-left {
+    margin-right: 20px;
+}
+.sidebar-right {
+    margin-left: 20px;
+}
+
+.sidebar h2 {
+    margin-top: 0;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 10px;
+}
+
+.agenda-item, .motion-item {
+    margin-bottom: 10px;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.center-content {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.current-motion-box {
+    background-color: #D9D9D9;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.current-motion-box h3 {
+    margin-top: 0;
+    font-size: 1.5em;
+}
+
+.current-motion-box p {
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+/* Styling moved from inline to a class */
+.motion-creator-text {
+    font-style: italic;
+    color: #555;
+}
+
+.footer {
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    border-top: 1px solid #ccc;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.vote-button {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.vote-button:hover {
+    transform: translateY(-2px);
+}
+
+.vote-button.aye {
+    background-color: #4CAF50; /* Green */
+}
+
+.vote-button.no {
+    background-color: #F44336; /* Red */
+}
+
+.vote-button.hand {
+    background-color: #2196F3; /* Blue */
+}
+
+.raise-hand-icon {
+    font-size: 1.5em;
+    vertical-align: middle;
+    margin-right: 5px;
+}
