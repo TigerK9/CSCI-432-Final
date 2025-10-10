@@ -1,5 +1,7 @@
+const MINUTES_STORAGE_KEY = 'ronr-minutesData';
+
 // --- 4. JAVASCRIPT DATA STRUCTURE ---
-const motionData = [
+const initialMotionData = [
     {
         id: 1,
         time: "9:05 AM",
@@ -38,9 +40,38 @@ const motionData = [
     }
 ];
 
-let activeMotionId = motionData.length > 0 ? motionData[0].id : null; // Start with the first motion selected
+let motionData = [];
+let activeMotionId = null;
 
 // --- JAVASCRIPT LOGIC ---
+
+/**
+ * Loads meeting minutes data from local storage.
+ */
+function loadMinutesData() {
+    const storedData = localStorage.getItem(MINUTES_STORAGE_KEY);
+    if (storedData) {
+        try {
+            const parsedData = JSON.parse(storedData);
+            motionData = parsedData.motions || initialMotionData;
+            activeMotionId = parsedData.activeId ?? (motionData.length > 0 ? motionData[0].id : null);
+        } catch (e) {
+            console.error("Error parsing minutes data from localStorage", e);
+            motionData = initialMotionData;
+            activeMotionId = motionData.length > 0 ? motionData[0].id : null;
+        }
+    } else {
+        motionData = initialMotionData;
+        activeMotionId = motionData.length > 0 ? motionData[0].id : null;
+    }
+}
+
+/**
+ * Saves the current minutes data to local storage.
+ */
+function saveMinutesData() {
+    localStorage.setItem(MINUTES_STORAGE_KEY, JSON.stringify({ motions: motionData, activeId: activeMotionId }));
+}
 
 // Function to render the chronological list of motions
 function renderMotionList() {
@@ -86,6 +117,9 @@ function showMotionDetails(motionId) {
     });
     document.querySelector(`[data-motion-id="${motionId}"]`).classList.add('active');
     activeMotionId = motionId;
+
+    // Persist the newly selected motion
+    saveMinutesData();
 
     if (!motion) {
         detailsContainer.innerHTML = '<p class="text-gray-500 p-8">Select a motion from the list to view details.</p>';
@@ -137,4 +171,7 @@ function exportMinutes() {
 }
 
 // Initialize the app when the DOM is ready
-document.addEventListener('DOMContentLoaded', renderMotionList);
+document.addEventListener('DOMContentLoaded', () => {
+    loadMinutesData();
+    renderMotionList();
+});
