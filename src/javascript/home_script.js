@@ -1,4 +1,4 @@
-const meetingsData = [
+const initialMeetingsData = [
   {
     name: "Meeting 1",
     description: "Project kickoff discussion",
@@ -25,12 +25,38 @@ const meetingsData = [
   },
 ];
 
+// This will be our main data source, populated from localStorage or the initial data.
+let meetingsData = [];
+
+const MEETINGS_STORAGE_KEY = 'ronr-meetingsData';
+
+/**
+ * Loads meetings from local storage.
+ * @returns {Array | null} The parsed meetings array or null if not found.
+ */
+function loadMeetingsFromStorage() {
+  const storedMeetings = localStorage.getItem(MEETINGS_STORAGE_KEY);
+  try {
+    return storedMeetings ? JSON.parse(storedMeetings) : null;
+  } catch (e) {
+    console.error("Error parsing meetings from localStorage", e);
+    return null;
+  }
+}
+
+/**
+ * Saves the current meetings array to local storage.
+ * @param {Array} meetings The meetings array to save.
+ */
+function saveMeetingsToStorage(meetings) {
+  localStorage.setItem(MEETINGS_STORAGE_KEY, JSON.stringify(meetings));
+}
+
 /**
  * Renders all meeting boxes, including the static "New Meeting" box.
  */
 function renderMeetings() {
   const gridContainer = document.querySelector(".grid-container");
-  // The first line below is kept from the feature branch:
   gridContainer.innerHTML = ""; // Clear existing content
 
   // Render meeting boxes from data
@@ -61,7 +87,15 @@ function renderMeetings() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Call the new rendering function from the 'feature' branch
+  // Load meetings from storage or use initial data
+  const storedMeetings = loadMeetingsFromStorage();
+  if (storedMeetings) {
+    meetingsData = storedMeetings;
+  } else {
+    meetingsData = initialMeetingsData;
+    saveMeetingsToStorage(meetingsData);
+  }
+
   renderMeetings(); 
 
   // Elements (consolidated from both branches)
@@ -94,15 +128,26 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     const name = meetingForm.meetingName.value;
+    const description = meetingForm.meetingDescription.value;
     const date = meetingForm.meetingDate.value;
     const link = meetingForm.meetingLink.value;
 
-    console.log("New meeting info submitted:", { name, date, link });
+    const newMeeting = {
+      name,
+      description: description || 'No description provided.', // Use the new description from the form
+      // Format the date for display
+      datetime: new Date(date).toLocaleString('en-US', { 
+        month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true 
+      }).replace(',', ' ·'),
+      link,
+    };
 
-    // TODO: In the future, you can add the new meeting to the meetingsData array
-    // and re-render the list. For example:
-    // meetingsData.push({ name, description: 'New from modal', datetime: date, link });
-    // renderMeetings();
+    // Add the new meeting to our data array
+    meetingsData.push(newMeeting);
+    // Save the updated array to local storage
+    saveMeetingsToStorage(meetingsData);
+    // Re-render the UI to show the new meeting
+    renderMeetings();
 
     // Close and reset form after successful submission
     modal.style.display = "none";

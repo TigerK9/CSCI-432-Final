@@ -71,11 +71,68 @@ body {
     padding-bottom: 10px;
 }
 
+.sidebar-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    align-self: center;
+    width: 80%;
+}
+
+.sidebar-btn:hover {
+    background-color: #45a049;
+}
+
+.agenda-item-edit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    background-color: #f1f1f1;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    cursor: grab;
+}
+
+.drop-indicator {
+    height: 3px;
+    background-color: #2196F3;
+    margin: 4px 0;
+    border-radius: 2px;
+}
+
+.agenda-item-edit.dragging {
+    opacity: 0.5;
+}
+
+.remove-agenda-item-btn {
+    background: none;
+    border: none;
+    color: #f44336;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
 .agenda-item, .motion-item {
     margin-bottom: 10px;
     padding: 8px;
     background-color: #f9f9f9;
     border-radius: 4px;
+}
+
+.agenda-item.active {
+    background-color: #d9edf7; /* A light blue to indicate active */
+    border-left: 4px solid #2196F3;
+}
+
+.motion-item.active {
+    background-color: #d9edf7; /* A light blue to indicate active */
+    border-left: 4px solid #2196F3;
 }
 
 .center-content {
@@ -155,4 +212,11 @@ body {
     font-size: 1.5em;
     vertical-align: middle;
     margin-right: 5px;
+}
+
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    gap: 10px;
 }
