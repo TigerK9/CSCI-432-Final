@@ -25,8 +25,12 @@ const meetingsData = [
   },
 ];
 
+/**
+ * Renders all meeting boxes, including the static "New Meeting" box.
+ */
 function renderMeetings() {
   const gridContainer = document.querySelector(".grid-container");
+  // The first line below is kept from the feature branch:
   gridContainer.innerHTML = ""; // Clear existing content
 
   // Render meeting boxes from data
@@ -43,7 +47,7 @@ function renderMeetings() {
     gridContainer.innerHTML += meetingBoxHTML;
   });
 
-  // Add the "New Meeting" box
+  // Add the "New Meeting" box (Kept from feature branch)
   const newMeetingBoxHTML = `
     <div class="box new-meeting" id="newMeetingBox">
       <div class="plus">+</div>
@@ -51,51 +55,57 @@ function renderMeetings() {
     </div>
   `;
   gridContainer.innerHTML += newMeetingBoxHTML;
+  
+  // The event listener is handled outside this function in DOMContentLoaded
+  // to prevent duplicate listeners on every render.
+}
 
-  // Re-attach event listener for the new meeting box
-  const newMeetingBox = document.getElementById("newMeetingBox");
+document.addEventListener('DOMContentLoaded', () => {
+  // Call the new rendering function from the 'feature' branch
+  renderMeetings(); 
+
+  // Elements (consolidated from both branches)
   const modal = document.getElementById("newMeetingModal");
+  const closeBtn = modal.querySelector(".close");
+  const meetingForm = document.getElementById("meetingForm");
+  
+  // Re-attach listener for the new meeting box (must be done after renderMeetings)
+  const newMeetingBox = document.getElementById("newMeetingBox");
   newMeetingBox.addEventListener("click", function (event) {
     event.preventDefault(); // prevent any default behavior
     modal.style.display = "block"; // show modal
   });
-}
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderMeetings();
-    const modal = document.getElementById("newMeetingModal");
-    const closeBtn = modal.querySelector(".close");
-    const meetingForm = document.getElementById("meetingForm");
 
-    // Close modal on X click
-    closeBtn.onclick = () => {
+  // Close modal on X click (Kept from both branches)
+  closeBtn.onclick = () => {
+    modal.style.display = "none";
+  };
+
+  // Close modal when clicking outside of the modal content (Kept from both branches)
+  window.onclick = (event) => {
+    if (event.target === modal) {
       modal.style.display = "none";
-    };
+    }
+  };
 
-    // Close modal when clicking outside of the modal content
-    window.onclick = (event) => {
-      if (event.target === modal) {
-        modal.style.display = "none";
-      }
-    };
+  // Handle form submit (Kept from both branches)
+  meetingForm.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-    // Handle form submit
-    meetingForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      
-      const name = meetingForm.meetingName.value;
-      const date = meetingForm.meetingDate.value;
-      const link = meetingForm.meetingLink.value;
+    const name = meetingForm.meetingName.value;
+    const date = meetingForm.meetingDate.value;
+    const link = meetingForm.meetingLink.value;
 
-      console.log("New meeting info submitted:", { name, date, link });
+    console.log("New meeting info submitted:", { name, date, link });
 
-      // TODO: In the future, you can add the new meeting to the meetingsData array
-      // and re-render the list. For example:
-      // meetingsData.push({ name, description: 'New from modal', datetime: date, link });
-      // renderMeetings();
+    // TODO: In the future, you can add the new meeting to the meetingsData array
+    // and re-render the list. For example:
+    // meetingsData.push({ name, description: 'New from modal', datetime: date, link });
+    // renderMeetings();
 
-      // Close and reset form after successful submission
-      modal.style.display = "none";
-      meetingForm.reset();
-    });
+    // Close and reset form after successful submission
+    modal.style.display = "none";
+    meetingForm.reset();
+  });
 });
