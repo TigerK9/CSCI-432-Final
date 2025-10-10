@@ -103,6 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = modal.querySelector(".close");
   const meetingForm = document.getElementById("meetingForm");
   
+  // --- Logout Button ---
+  const logoutButton = document.getElementById('logout-button');
+  logoutButton.addEventListener('click', () => {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('currentUserEmail');
+      window.location.href = 'login.html';
+  });
+
   // Re-attach listener for the new meeting box (must be done after renderMeetings)
   const newMeetingBox = document.getElementById("newMeetingBox");
   newMeetingBox.addEventListener("click", function (event) {
