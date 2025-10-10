@@ -5,6 +5,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const signInButton = document.getElementById('signInButton');
     const loginForm = document.getElementById('loginForm');
 
+    const USERS_STORAGE_KEY = 'ronr-users';
+
+    // Initialize default admin user if no users exist in localStorage.
+    // This runs on the login page to ensure the admin account is always available.
+    if (!localStorage.getItem(USERS_STORAGE_KEY)) {
+        const defaultUsers = {
+            'admin@email.com': 'password'
+        };
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(defaultUsers));
+    }
+    // Function to get users from local storage.
+    const getUsers = () => {
+        return JSON.parse(localStorage.getItem(USERS_STORAGE_KEY)) || {};
+    };
+
     // Function to check input fields and toggle button state
     const checkFormValidity = () => {
         // Basic check: ensure both fields have non-empty values
@@ -35,25 +50,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
 
-            console.log("Attempting sign in with:");
-            console.log(`Email: ${email}`);
-            console.log(`Password: ${'*'.repeat(password.length)}`);
-            
-            // --- Placeholder for Authentication Logic ---
-            // In a real application, you would use Firebase Auth (or another provider) here:
-            // signInWithEmailAndPassword(auth, email, password)
-            //     .then((userCredential) => {
-            //         console.log("Login successful!", userCredential.user);
-            //         window.location.href = 'home.html'; 
-            //     })
-            //     .catch((error) => {
-            //         console.error("Login failed:", error.message);
-            //         // Display error message to the user (e.g., "Invalid credentials")
-            //     });
-            // ---------------------------------------------
-            
-            // For demonstration: show success in console
-            console.log("Login sequence initiated. Replace this with actual Firebase authentication.");
+            const users = getUsers();
+
+            // Check if user exists and password is correct
+            if (users[email] && users[email] === password) {
+                // --- Login Success ---
+                localStorage.setItem('isLoggedIn', 'true');
+                // Store current user's email for personalization
+                localStorage.setItem('currentUserEmail', email);
+                
+                alert('Login successful!');
+                window.location.href = 'home.html'; // Redirect to the home page
+            } else {
+                // --- Login Failure ---
+                alert('Invalid email or password. Please try again.');
+                passwordInput.value = ''; // Clear password field
+            }
         }
     });
 

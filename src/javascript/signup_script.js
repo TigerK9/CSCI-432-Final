@@ -6,44 +6,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const createAccountBtn = document.getElementById('createAccountBtn');
+    const signupForm = document.querySelector('form');
+
+    const USERS_STORAGE_KEY = 'ronr-users';
 
     // Function to check all validation rules
     const checkFormValidity = () => {
       // Check if all three required fields are filled (basic validation)
-      const isFormValid = nameInput.value.trim() !== '' &&
-                          emailInput.value.trim() !== '' &&
-                          passwordInput.value.trim() !== '';
-
-      if (isFormValid) {
-        // If valid: apply the active color, enable the button
-        createAccountBtn.classList.add('btn-valid-state');
-        createAccountBtn.classList.remove('btn-disabled-state');
-        createAccountBtn.disabled = false;
-      } else {
-        // If invalid: revert to default color, disable the button
-        createAccountBtn.classList.remove('btn-valid-state');
-        createAccountBtn.classList.add('btn-disabled-state');
-        createAccountBtn.disabled = true;
-      }
+        const isFormValid = nameInput.value.trim() !== '' &&
+                            emailInput.value.trim() !== '' &&
+                            passwordInput.value.trim() !== '';
+          if (isFormValid) {
+              // If valid: apply the active color, enable the button
+              createAccountBtn.classList.add('btn-valid-state');
+              createAccountBtn.classList.remove('btn-disabled-state');
+              createAccountBtn.disabled = false;
+          } else {
+              // If invalid: revert to default color, disable the button
+              createAccountBtn.classList.remove('btn-valid-state');
+              createAccountBtn.classList.add('btn-disabled-state');
+              createAccountBtn.disabled = true;
+          }
     };
 
     // Array of inputs to listen to
-    const inputs = [nameInput, emailInput, passwordInput];
-
-    // Attach the checkFormValidity function to the 'input' event for real-time validation
-    inputs.forEach(input => {
-      input.addEventListener('input', checkFormValidity);
-    });
+    nameInput.addEventListener('input', checkFormValidity);
+    emailInput.addEventListener('input', checkFormValidity);
+    passwordInput.addEventListener('input', checkFormValidity);
 
     // Handle form submission
-    createAccountBtn.closest('form').addEventListener('submit', (e) => {
-        // Only prevent submission if the button is currently disabled
-        if (createAccountBtn.disabled) {
-            e.preventDefault();
-        } else {
-            console.log("Form is valid and ready to submit!");
-            // In a real application, you would send data to the server here (e.g., using fetch API)
-            // e.preventDefault(); // Uncomment this line if you want to prevent a full page reload for testing
+    signupForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // Always prevent default to handle via JS
+
+        // Only proceed if the button is not disabled
+        if (!createAccountBtn.disabled) {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value; // Don't trim password
+
+            // Load existing users or initialize a new object
+            let users = {};
+            try {
+                const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+                if (storedUsers) {
+                    users = JSON.parse(storedUsers);
+                }
+            } catch (error) {
+                console.error('Error parsing users from localStorage', error);
+            }
+
+            // Check if user already exists
+            if (users[email]) {
+                alert('An account with this email already exists. Please log in.');
+                return;
+            }
+
+            // Add new user and save to localStorage
+            users[email] = password;
+            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+
+            alert('Account created successfully! Please log in.');
+            window.location.href = 'login.html';
         }
     });
 
