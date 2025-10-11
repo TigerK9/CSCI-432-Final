@@ -138,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = meetingForm.meetingName.value;
     const description = meetingForm.meetingDescription.value;
     const date = meetingForm.meetingDate.value;
-    const link = meetingForm.meetingLink.value;
 
     const newMeeting = {
       name,
@@ -147,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
       datetime: new Date(date).toLocaleString('en-US', { 
         month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true 
       }).replace(',', ' ·'),
-      link,
+      link: "meeting.html", // Hardcode the link
     };
 
     // Add the new meeting to our data array
