@@ -11,7 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // This runs on the login page to ensure the admin account is always available.
     if (!localStorage.getItem(USERS_STORAGE_KEY)) {
         const defaultUsers = {
-            'admin@email.com': 'password'
+            'admin@email.com': {
+                password: 'password',
+                role: 'admin'
+            },
+            'chairman@email.com': {
+                password: 'password',
+                role: 'chairman'
+            },
+            'member@email.com': {
+                password: 'password',
+                role: 'member'
+            }
         };
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(defaultUsers));
     }
@@ -53,11 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const users = getUsers();
 
             // Check if user exists and password is correct
-            if (users[email] && users[email] === password) {
+            const user = users[email];
+            if (user && user.password === password) {
                 // --- Login Success ---
                 localStorage.setItem('isLoggedIn', 'true');
                 // Store current user's email for personalization
                 localStorage.setItem('currentUserEmail', email);
+                // Store current user's role for authorization
+                localStorage.setItem('currentUserRole', user.role);
                 
                 alert('Login successful!');
                 window.location.href = 'home.html'; // Redirect to the home page

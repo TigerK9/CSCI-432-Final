@@ -73,17 +73,17 @@ function renderMeetings() {
     gridContainer.innerHTML += meetingBoxHTML;
   });
 
-  // Add the "New Meeting" box (Kept from feature branch)
-  const newMeetingBoxHTML = `
-    <div class="box new-meeting" id="newMeetingBox">
-      <div class="plus">+</div>
-      <div>New Meeting</div>
-    </div>
-  `;
-  gridContainer.innerHTML += newMeetingBoxHTML;
-  
-  // The event listener is handled outside this function in DOMContentLoaded
-  // to prevent duplicate listeners on every render.
+  // Only add the "New Meeting" box for admins and chairmen
+  const userRole = localStorage.getItem('currentUserRole');
+  if (userRole === 'admin' || userRole === 'chairman') {
+    const newMeetingBoxHTML = `
+      <div class="box new-meeting" id="newMeetingBox">
+        <div class="plus">+</div>
+        <div>New Meeting</div>
+      </div>
+    `;
+    gridContainer.innerHTML += newMeetingBoxHTML;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -111,12 +111,15 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = 'login.html';
   });
 
-  // Re-attach listener for the new meeting box (must be done after renderMeetings)
-  const newMeetingBox = document.getElementById("newMeetingBox");
-  newMeetingBox.addEventListener("click", function (event) {
-    event.preventDefault(); // prevent any default behavior
-    modal.style.display = "block"; // show modal
-  });
+  // The "New Meeting" box is only rendered for specific roles, so we only
+  // need to add the listener if the box exists.
+  const newMeetingBox = document.getElementById('newMeetingBox');
+  if (newMeetingBox) {
+    newMeetingBox.addEventListener('click', function (event) {
+      event.preventDefault();
+      modal.style.display = 'block'; // show modal
+    });
+  }
 
 
   // Close modal on X click (Kept from both branches)

@@ -141,23 +141,6 @@ function updateMeetingUI() {
             updateMeetingUI();
         };
         agendaContainer.appendChild(saveBtn);
-
-            // --- Add Drag and Drop handlers only once when entering edit mode ---
-            let draggedItemIndex = null;
-
-            const removeDropIndicator = () => {
-                const indicator = agendaContainer.querySelector('.drop-indicator');
-                if (indicator) {
-                    indicator.remove();
-                }
-                agendaContainer.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-            };
-
-            agendaContainer.addEventListener('dragend', e => {
-                e.target.closest('.agenda-item-edit')?.classList.remove('dragging');
-                draggedItemIndex = null;
-                removeDropIndicator(); // Clean up indicator on drag end
-            });
     } else {
         // --- VIEW MODE ---
         meetingData.agenda.forEach((itemText, index) => {
@@ -171,45 +154,52 @@ function updateMeetingUI() {
         });
 
         // Add navigation buttons for the agenda
-        const navContainer = document.createElement('div');
-        navContainer.className = 'nav-buttons';
+        const userRole = localStorage.getItem('currentUserRole');
 
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = 'Previous';
-        prevBtn.className = 'sidebar-btn';
-        prevBtn.onclick = () => {
-            if (meetingData.currentAgendaIndex > 0) {
-                meetingData.currentAgendaIndex--;
-                saveMeetingDataToStorage(meetingData);
-                updateMeetingUI();
-            }
-        };
+        // Add navigation buttons for the agenda
+        if (userRole === 'admin' || userRole === 'chairman') {
+            const navContainer = document.createElement('div');
+            navContainer.className = 'nav-buttons';
 
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = 'Next';
-        nextBtn.className = 'sidebar-btn';
-        nextBtn.onclick = () => {
-            if (meetingData.currentAgendaIndex < meetingData.agenda.length - 1) {
-                meetingData.currentAgendaIndex++;
-                saveMeetingDataToStorage(meetingData);
-                updateMeetingUI();
-            }
-        };
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Previous';
+            prevBtn.className = 'sidebar-btn';
+            prevBtn.onclick = () => {
+                if (meetingData.currentAgendaIndex > 0) {
+                    meetingData.currentAgendaIndex--;
+                    saveMeetingDataToStorage(meetingData);
+                    updateMeetingUI();
+                }
+            };
 
-        navContainer.appendChild(prevBtn);
-        navContainer.appendChild(nextBtn);
-        agendaContainer.appendChild(navContainer);
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next';
+            nextBtn.className = 'sidebar-btn';
+            nextBtn.onclick = () => {
+                if (meetingData.currentAgendaIndex < meetingData.agenda.length - 1) {
+                    meetingData.currentAgendaIndex++;
+                    saveMeetingDataToStorage(meetingData);
+                    updateMeetingUI();
+                }
+            };
+
+            navContainer.appendChild(prevBtn);
+            navContainer.appendChild(nextBtn);
+            agendaContainer.appendChild(navContainer);
+        }
 
         // Add Edit button
-        const editBtn = document.createElement('button');
-        editBtn.id = 'edit-agenda-btn';
-        editBtn.className = 'sidebar-btn';
-        editBtn.textContent = 'Edit Agenda';
-        editBtn.onclick = () => {
-            isAgendaEditing = true;
-            updateMeetingUI();
-        };
-        agendaContainer.parentElement.appendChild(editBtn);
+        if (userRole === 'admin' || userRole === 'chairman') {
+            const editBtn = document.createElement('button');
+            editBtn.id = 'edit-agenda-btn';
+            editBtn.className = 'sidebar-btn';
+            editBtn.textContent = 'Edit Agenda';
+            editBtn.onclick = () => {
+                isAgendaEditing = true;
+                updateMeetingUI();
+            };
+            agendaContainer.parentElement.appendChild(editBtn);
+        }
     }
     
     // --- Update the Motion Queue section ---
@@ -293,186 +283,149 @@ function updateMeetingUI() {
         });
 
         // Add navigation buttons for the motion queue
-        if (meetingData.motionQueue.length > 1) {
-            const navContainer = document.createElement('div');
-            navContainer.className = 'nav-buttons';
+        const userRole = localStorage.getItem('currentUserRole');
 
-            const prevBtn = document.createElement('button');
-            prevBtn.textContent = 'Previous';
-            prevBtn.className = 'sidebar-btn';
-            prevBtn.onclick = () => {
-                if (meetingData.currentMotionIndex > 0) {
-                    meetingData.currentMotionIndex--;
-                    saveMeetingDataToStorage(meetingData);
-                    updateMeetingUI();
-                }
-            };
+        // Add navigation buttons for the motion queue
+        if (userRole === 'admin' || userRole === 'chairman') {
+            if (meetingData.motionQueue.length > 1) {
+                const navContainer = document.createElement('div');
+                navContainer.className = 'nav-buttons';
 
-            const nextBtn = document.createElement('button');
-            nextBtn.textContent = 'Next';
-            nextBtn.className = 'sidebar-btn';
-            nextBtn.onclick = () => {
-                if (meetingData.currentMotionIndex < meetingData.motionQueue.length - 1) {
-                    meetingData.currentMotionIndex++;
-                    saveMeetingDataToStorage(meetingData);
-                    updateMeetingUI();
-                }
-            };
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = 'Previous';
+                prevBtn.className = 'sidebar-btn';
+                prevBtn.onclick = () => {
+                    if (meetingData.currentMotionIndex > 0) {
+                        meetingData.currentMotionIndex--;
+                        saveMeetingDataToStorage(meetingData);
+                        updateMeetingUI();
+                    }
+                };
 
-            navContainer.appendChild(prevBtn);
-            navContainer.appendChild(nextBtn);
-            motionQueueContainer.appendChild(navContainer);
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Next';
+                nextBtn.className = 'sidebar-btn';
+                nextBtn.onclick = () => {
+                    if (meetingData.currentMotionIndex < meetingData.motionQueue.length - 1) {
+                        meetingData.currentMotionIndex++;
+                        saveMeetingDataToStorage(meetingData);
+                        updateMeetingUI();
+                    }
+                };
+
+                navContainer.appendChild(prevBtn);
+                navContainer.appendChild(nextBtn);
+                motionQueueContainer.appendChild(navContainer);
+            }
         }
 
-        const editBtn = document.createElement('button');
-        editBtn.id = 'edit-motion-queue-btn';
-        editBtn.className = 'sidebar-btn';
-        editBtn.textContent = 'Edit Motion Queue';
-        editBtn.onclick = () => {
-            isMotionQueueEditing = true;
-            updateMeetingUI();
-        };
-        motionQueueContainer.parentElement.appendChild(editBtn);
+        // Add Edit button
+        if (userRole === 'admin' || userRole === 'chairman') {
+            const editBtn = document.createElement('button');
+            editBtn.id = 'edit-motion-queue-btn';
+            editBtn.className = 'sidebar-btn';
+            editBtn.textContent = 'Edit Motion Queue';
+            editBtn.onclick = () => {
+                isMotionQueueEditing = true;
+                updateMeetingUI();
+            };
+            motionQueueContainer.parentElement.appendChild(editBtn);
+        }
     }
+}
 
-    // --- Add Drag and Drop handlers if in edit mode ---
-    // This needs to be outside the if/else to be attached correctly after re-render
-
-    // AGENDA D&D
+/**
+ * Sets up drag and drop functionality for a given container.
+ * @param {HTMLElement} container The container element for draggable items.
+ * @param {Array<any>} dataArray The data array to modify on drop.
+ * @param {string} itemSelector The selector for draggable items.
+ * @param {string} indexAttribute The data attribute for the item's index.
+ */
+function setupDragAndDrop(container, dataArray, itemSelector, indexAttribute) {
     let draggedItemIndex = null;
+
     const removeDropIndicator = () => {
-        const indicator = agendaContainer.querySelector('.drop-indicator');
+        const indicator = container.querySelector('.drop-indicator');
         if (indicator) {
             indicator.remove();
         }
     };
 
-    agendaContainer.ondragstart = e => {
-        const target = e.target.closest('.agenda-item-edit');
+    container.addEventListener('dragstart', e => {
+        const target = e.target.closest(itemSelector);
+        if (!target) return;
+
+        draggedItemIndex = parseInt(target.dataset[indexAttribute], 10);
+        // Add a slight delay so the browser can capture the snapshot
+        setTimeout(() => {
+            target.classList.add('dragging');
+        }, 0);
+    });
+
+    container.addEventListener('dragend', e => {
+        const target = e.target.closest(itemSelector);
         if (target) {
-            draggedItemIndex = parseInt(target.dataset.index, 10);
-            e.dataTransfer.effectAllowed = 'move';
-            setTimeout(() => target.classList.add('dragging'), 0);
+            target.classList.remove('dragging');
         }
-    };
-
-    agendaContainer.ondragover = e => {
-        e.preventDefault();
-        if (!isAgendaEditing) return;
-        const target = e.target.closest('.agenda-item-edit');
-        if (!target || target.dataset.index === String(draggedItemIndex)) return;
-
-        removeDropIndicator();
-
-        const rect = target.getBoundingClientRect();
-        const midpoint = rect.top + rect.height / 2;
-        
-        const indicator = document.createElement('div');
-        indicator.className = 'drop-indicator';
-
-        if (e.clientY < midpoint) {
-            target.parentNode.insertBefore(indicator, target);
-        } else {
-            target.parentNode.insertBefore(indicator, target.nextSibling);
-        }
-    };
-
-    agendaContainer.ondragleave = e => {
-        if (e.target === agendaContainer) {
-            removeDropIndicator();
-        }
-    };
-
-    agendaContainer.ondragend = e => {
-        e.target.closest('.agenda-item-edit')?.classList.remove('dragging');
         draggedItemIndex = null;
         removeDropIndicator();
-    };
+    });
 
-    agendaContainer.ondrop = e => {
-        if (!isAgendaEditing) return;
+    container.addEventListener('dragover', e => {
         e.preventDefault();
-        const indicator = agendaContainer.querySelector('.drop-indicator');
-        if (!indicator || draggedItemIndex === null) {
-            removeDropIndicator(); // Also remove on failed drop
-            return;
-        }
+        const target = e.target.closest(itemSelector);
+        if (!target || draggedItemIndex === null) return;
 
-        const items = Array.from(agendaContainer.querySelectorAll('.agenda-item-edit, .drop-indicator'));
-        const newIndex = items.indexOf(indicator);
-        
         removeDropIndicator();
 
-        // Adjust index if dragging downwards
-        const finalIndex = newIndex > draggedItemIndex ? newIndex - 1 : newIndex;
-
-        const [draggedItem] = meetingData.agenda.splice(draggedItemIndex, 1);
-        meetingData.agenda.splice(finalIndex, 0, draggedItem);
-
-        updateMeetingUI();
-    };
-
-    // MOTION QUEUE D&D
-    let mqDraggedItemIndex = null;
-    const removeMqDropIndicator = () => {
-        const indicator = motionQueueContainer.querySelector('.drop-indicator');
-        if (indicator) {
-            indicator.remove();
-        }
-    };
-
-    motionQueueContainer.ondragstart = e => {
-        const target = e.target.closest('.agenda-item-edit');
-        if (target && target.dataset.mqIndex) {
-            mqDraggedItemIndex = parseInt(target.dataset.mqIndex, 10);
-            e.dataTransfer.effectAllowed = 'move';
-            setTimeout(() => target.classList.add('dragging'), 0);
-        }
-    };
-
-    motionQueueContainer.ondragover = e => {
-        e.preventDefault();
-        if (!isMotionQueueEditing) return;
-        const target = e.target.closest('.agenda-item-edit');
-        if (!target || target.dataset.mqIndex === String(mqDraggedItemIndex)) return;
-
-        removeMqDropIndicator();
-
         const rect = target.getBoundingClientRect();
-        const midpoint = rect.top + rect.height / 2;
-        
+        const isAfter = e.clientY > rect.top + rect.height / 2;
+
         const indicator = document.createElement('div');
         indicator.className = 'drop-indicator';
 
-        if (e.clientY < midpoint) {
-            target.parentNode.insertBefore(indicator, target);
-        } else {
+        if (isAfter) {
             target.parentNode.insertBefore(indicator, target.nextSibling);
+        } else {
+            target.parentNode.insertBefore(indicator, target);
         }
-    };
+    });
 
-    motionQueueContainer.ondragend = e => {
-        e.target.closest('.agenda-item-edit')?.classList.remove('dragging');
-        mqDraggedItemIndex = null;
-        removeMqDropIndicator();
-    };
+    container.addEventListener('dragleave', e => {
+        // Simple check to remove indicator if we leave the container bounds
+        if (e.relatedTarget === null || !container.contains(e.relatedTarget)) {
+            removeDropIndicator();
+        }
+    });
 
-    motionQueueContainer.ondrop = e => {
-        if (!isMotionQueueEditing) return;
+    container.addEventListener('drop', e => {
         e.preventDefault();
-        const indicator = motionQueueContainer.querySelector('.drop-indicator');
-        if (!indicator || mqDraggedItemIndex === null) {
-            removeMqDropIndicator();
-            return;
+        removeDropIndicator();
+        const targetElement = e.target.closest(itemSelector);
+        if (draggedItemIndex === null || !targetElement) return;
+
+        const dropIndex = parseInt(targetElement.dataset[indexAttribute], 10);
+        const rect = targetElement.getBoundingClientRect();
+        const isAfter = e.clientY > rect.top + rect.height / 2;
+
+        const draggedItem = dataArray[draggedItemIndex];
+        // Remove the item from its original position
+        dataArray.splice(draggedItemIndex, 1);
+
+        let newIndex;
+        if (isAfter) {
+            newIndex = (draggedItemIndex < dropIndex) ? dropIndex : dropIndex + 1;
+        } else {
+            newIndex = (draggedItemIndex < dropIndex) ? dropIndex - 1 : dropIndex;
         }
-        const items = Array.from(motionQueueContainer.querySelectorAll('.agenda-item-edit, .drop-indicator'));
-        const newIndex = items.indexOf(indicator);
-        const finalIndex = newIndex > mqDraggedItemIndex ? newIndex - 1 : newIndex;
-        const [draggedItem] = meetingData.motionQueue.splice(mqDraggedItemIndex, 1);
-        meetingData.motionQueue.splice(finalIndex, 0, draggedItem);
-        removeMqDropIndicator();
+
+        // Insert it at the new position
+        dataArray.splice(newIndex, 0, draggedItem);
+
+        // The dragged item is no longer being dragged
+        draggedItemIndex = null;
         updateMeetingUI();
-    };
+    });
 }
 
 // When the page loads, try to get data from local storage.
@@ -487,4 +440,10 @@ window.onload = () => {
     }
     
     updateMeetingUI();
+
+    // Setup drag and drop listeners on the containers.
+    const agendaContainer = document.getElementById('agenda-container');
+    const motionQueueContainer = document.getElementById('motion-queue-container');
+    setupDragAndDrop(agendaContainer, meetingData.agenda, '.agenda-item-edit', 'index');
+    setupDragAndDrop(motionQueueContainer, meetingData.motionQueue, '.agenda-item-edit', 'mqIndex');
 };
