@@ -61,7 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Add new user and save to localStorage
-            users[email] = password;
+            users[email] = {
+                password: password,
+                role: 'member' // Default role for new signups
+            };
             localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
 
             alert('Account created successfully! Please log in.');
