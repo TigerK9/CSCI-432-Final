@@ -20,10 +20,19 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-    "devDependencies": {
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.14",
     "vite": "^7.1.2"
   },
   "dependencies": {
-    "puppeteer": "^24.10.2"
+    "@vitejs/plugin-react": "^5.0.4",
+    "chart.js": "^4.5.1",
+    "puppeteer": "^24.10.2",
+    "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.4"
   }
 }
