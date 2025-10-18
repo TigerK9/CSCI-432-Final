@@ -48,7 +48,7 @@ const VotingResultsPage = () => {
     const noPercent = totalVotes > 0 ? ((motionData.noVotes / totalVotes) * 100).toFixed(1) : 0;
 
     return (
-        <div style={{ paddingTop: '80px' }}>
+        <div className="voting-results-wrapper">
             <div className="taskbar">
                 <div className="taskbar-left">
                     <Link to="/home" className="taskbar-icon" title="Home">

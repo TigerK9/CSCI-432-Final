@@ -1,11 +1,13 @@
-body {
+/* This wrapper will now handle the page layout, leaving the global `body` style alone. */
+.profile-page-wrapper {
     font-family: Arial, sans-serif;
     margin: 0;
     background-color: #878E76; /* Background color */
     display: flex;
     flex-direction: column; /* Arrange content vertically */
     min-height: 100vh;
-    padding: 16px; /* This adds a 16px gap on all sides */
+    padding: 16px;
+    box-sizing: border-box;
 }
 
 .taskbar {

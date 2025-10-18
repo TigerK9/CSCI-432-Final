@@ -1,10 +1,12 @@
-body {
+/* This wrapper will now handle the page layout, leaving the global `body` style alone. */
+.home-page-wrapper {
     margin: 0;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background: #9DB4AB;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    box-sizing: border-box;
 }
 
 /* --- Taskbar Styles --- (from inline HTML) */

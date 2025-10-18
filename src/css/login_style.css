@@ -5,12 +5,17 @@
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
+/* This wrapper will now handle the centering, leaving the global `body` style alone. */
+.login-page-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     background: linear-gradient(45deg, #878E76, #BBDB9B);
+}
+
+body {
+    background-color: #878E76; /* Fallback background */
 }
 
 .login-container {
