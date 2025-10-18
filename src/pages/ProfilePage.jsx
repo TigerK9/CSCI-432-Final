@@ -64,7 +64,7 @@ const ProfilePage = () => {
     
     // --- JSX START ---
     return (
-        <>
+        <div className="profile-page-wrapper">
             {/* Taskbar structure is mostly correct, but needs the right-side icons if they existed */}
             <div className="taskbar">
                 <div className="taskbar-left">
@@ -164,7 +164,7 @@ const ProfilePage = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
     // --- JSX END ---
 };

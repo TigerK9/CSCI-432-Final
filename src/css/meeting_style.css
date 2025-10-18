@@ -1,14 +1,30 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background-color: #878E76;
+/* Define a custom font */
+/* This is the new, high-specificity wrapper for the entire page */
+#meeting-page-layout {
+    font-family: 'Inter', sans-serif;
+    background-color: #878E76; 
     color: #333;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    padding: 16px;
+    
+    /* CRITICAL FIX FOR CENTERING/MAX-WIDTH */
+    /* Must be relative to serve as the anchor for the absolute sidebars */
+    position: relative !important; 
+    /* Force full viewport width and clear all parent constraints */
+    width: 100vw !important;
+    max-width: none !important; 
+    margin: 0 !important;
+    
+    /* Default flex settings are removed to use block/absolute positioning */
+    display: block !important;
+    min-height: 100vh !important;
+    
+    box-sizing: border-box;
+    /* Add padding to account for the fixed taskbar (70px) */
+    padding-top: 70px;
+    /* Add padding to account for the fixed footer (80px) */
+    padding-bottom: 80px; 
 }
 
+/* --- TASKBAR STYLES --- */
 .taskbar {
     background-color: #555;
     color: white;
@@ -17,33 +33,46 @@ body {
     justify-content: space-between;
     align-items: center;
     border-radius: 8px;
+    /* Fixed position is perfect */
     position: fixed;
     top: 16px;
     left: 16px;
     right: 16px;
     z-index: 1000;
 }
-
+/* ... (rest of taskbar styles are unchanged) ... */
 .taskbar-icon {
     color: white;
     text-decoration: none;
     font-size: 24px;
     padding: 5px;
 }
-
 .taskbar-left .taskbar-icon {
     margin-right: 15px;
 }
-
 .taskbar-right .taskbar-icon {
     margin-left: 15px;
 }
+/* --- END OF TASKBAR STYLES --- */
 
+
+/* ---------------------------------------------------------------------- */
+/* --- NEW MAIN LAYOUT LOGIC (Absolute Sidebars, Block Center) --- */
+/* ---------------------------------------------------------------------- */
+
+/* The main container acts as the body for the center content */
 .main-container {
-    flex-grow: 1;
-    display: flex;
-    padding: 20px;
-    margin-top: 64px;
+    display: block !important; 
+    flex: 1; /* Retained, though less meaningful now */
+    
+    /* Padding reserves space for the absolutely positioned sidebars */
+    /* Sidebar Width (280px) + Gap (20px) = 300px on each side */
+    padding: 20px 300px 20px 300px; 
+    
+    /* Remove gap and flex properties used for the old layout */
+    gap: 0;
+    flex-direction: row; 
+    flex-wrap: nowrap;
 }
 
 .sidebar {
@@ -51,24 +80,61 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 250px;
-    min-height: 100%;
+    
+    /* CRITICAL FIX: ABSOLUTE POSITIONING */
+    position: absolute !important;
+    
+    /* Top: Anchored below the header and taskbar area (70px padding + 20px main-container padding) */
+    top: 90px !important; 
+    
+    /* Bottom: Anchored just above the fixed footer (80px footer height + 20px main-container padding) */
+    bottom: 100px !important; 
+
+    width: 340px !important;
+    flex-shrink: 0 !important; 
     display: flex;
     flex-direction: column;
 }
 
-/* Added margin styling to the sidebars using classes in HTML */
 .sidebar-left {
-    margin-right: 20px;
+    left: 10px !important; /* Push to the far left edge of the 100vw container */
 }
 .sidebar-right {
-    margin-left: 20px;
+    right: 10px !important; /* Push to the far right edge of the 100vw container */
 }
 
+/* Added to give the main content room to breathe, flowing in the reserved space */
+.center-content {
+    /* Center content now flows normally within the main-container's padding */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%; 
+    min-width: 300px !important; 
+    flex-grow: 1 !important; 
+}
+
+/* ... (rest of styles are largely unchanged) ... */
 .sidebar h2 {
     margin-top: 0;
     border-bottom: 2px solid #ccc;
     padding-bottom: 10px;
+}
+
+/* Make the list containers grow to push the footer down */
+#agenda-container, #motion-queue-container {
+    flex-grow: 1;
+    overflow-y: auto; /* Add scroll for long lists */
+}
+
+/* New container for the buttons at the bottom of the sidebar */
+.sidebar-footer {
+    margin-top: auto; /* This is the key to pushing it to the bottom */
+    padding-top: 1px; /* Add some space above the buttons */
+    border-top: 1px solid #ccc; /* Visual separator */
+    display: flex;
+    flex-direction: column;
+    gap: 1px; /* Space between nav buttons and edit button */
 }
 
 .sidebar-btn {
@@ -82,11 +148,9 @@ body {
     align-self: center;
     width: 80%;
 }
-
 .sidebar-btn:hover {
     background-color: #45a049;
 }
-
 .agenda-item-edit {
     display: flex;
     align-items: center;
@@ -97,18 +161,15 @@ body {
     margin-bottom: 5px;
     cursor: grab;
 }
-
 .drop-indicator {
     height: 3px;
     background-color: #2196F3;
     margin: 4px 0;
     border-radius: 2px;
 }
-
 .agenda-item-edit.dragging {
     opacity: 0.5;
 }
-
 .remove-agenda-item-btn {
     background: none;
     border: none;
@@ -117,32 +178,22 @@ body {
     cursor: pointer;
     padding: 0 5px;
 }
-
 .agenda-item, .motion-item {
     margin-bottom: 10px;
     padding: 8px;
     background-color: #f9f9f9;
     border-radius: 4px;
 }
-
 .agenda-item.active {
-    background-color: #d9edf7; /* A light blue to indicate active */
+    background-color: #d9edf7; 
     border-left: 4px solid #2196F3;
 }
-
-.motion-item.active {
-    background-color: #d9edf7; /* A light blue to indicate active */
+/* Make this selector more specific to override other global styles */
+#meeting-page-layout .motion-item.active {
+    background-color: #d9edf7; 
     border-left: 4px solid #2196F3;
+    color: #333; /* Add this to override the white text color from other stylesheets */
 }
-
-.center-content {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 20px;
-}
-
 .current-motion-box {
     background-color: #D9D9D9;
     padding: 40px;
@@ -152,34 +203,34 @@ body {
     width: 100%;
     text-align: center;
 }
-
 .current-motion-box h3 {
     margin-top: 0;
     font-size: 1.5em;
 }
-
 .current-motion-box p {
     font-size: 1.1em;
     line-height: 1.5;
 }
-
-/* Styling moved from inline to a class */
 .motion-creator-text {
     font-style: italic;
     color: #555;
 }
-
 .footer {
     background-color: rgba(255, 255, 255, 0.7);
-    padding: 20px;
+    padding: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 20px;
-    border-top: 1px solid #ccc;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    /* Fixed position is perfect */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-top: none; 
 }
-
 .vote-button {
     padding: 15px 30px;
     border: none;
@@ -191,32 +242,26 @@ body {
     transition: transform 0.2s;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-
 .vote-button:hover {
     transform: translateY(-2px);
 }
-
 .vote-button.aye {
-    background-color: #4CAF50; /* Green */
+    background-color: #4CAF50; 
 }
-
 .vote-button.no {
-    background-color: #F44336; /* Red */
+    background-color: #F44336; 
 }
-
 .vote-button.hand {
-    background-color: #2196F3; /* Blue */
+    background-color: #2196F3; 
 }
-
 .raise-hand-icon {
     font-size: 1.5em;
     vertical-align: middle;
     margin-right: 5px;
 }
-
 .nav-buttons {
     display: flex;
     justify-content: space-between;
-    margin-top: 10px;
-    gap: 10px;
+    margin-top: 3px;
+    gap: 7px;
 }

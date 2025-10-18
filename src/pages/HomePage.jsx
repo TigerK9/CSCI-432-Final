@@ -105,7 +105,7 @@ const HomePage = () => {
   };
 
   return (
-    <>
+    <div className="home-page-wrapper">
       <div className="taskbar">
         <div className="taskbar-left">
           <Link to="/home" className="taskbar-icon" title="Home">
@@ -146,7 +146,7 @@ const HomePage = () => {
         onClose={() => setIsModalOpen(false)}
         onCreateMeeting={handleCreateMeeting}
       />
-    </>
+    </div>
   );
 };
 

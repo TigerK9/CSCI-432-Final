@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import '../css/meeting_style.css'; // Assuming styles are compatible
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import '../css/meeting_style.css'; // Your specific CSS file
 
 const MEETING_STORAGE_KEY = 'ronr-meetingData';
 
@@ -134,89 +135,138 @@ const MeetingPage = () => {
     const currentMotion = meetingData.motionQueue[meetingData.currentMotionIndex];
 
     return (
-        <div className="meeting-container">
-            <div className="main-content">
-                <div id="motion-name">{currentMotion ? `Current Motion: ${currentMotion.name}` : 'No Active Motion'}</div>
-                <div id="motion-description">{currentMotion ? currentMotion.description : 'The motion queue is empty.'}</div>
-                <div id="motion-creator">{currentMotion ? `(Moved by: ${currentMotion.creator})` : ''}</div>
+        // This wrapper provides a unique, high-specificity root for our CSS to target.
+        <div id="meeting-page-layout">
+            <div className="taskbar">
+                <div className="taskbar-left">
+                    <Link to="/home" className="taskbar-icon" title="Home">
+                        <i className="bi-house"></i>
+                    </Link>
+                </div>
+                <div className="taskbar-right">
+                    <Link to="/profile" className="taskbar-icon" title="Profile">
+                        <i className="bi-person"></i>
+                    </Link>
+                </div>
             </div>
 
-            <div className="sidebar" id="agenda-sidebar">
-                <h2>Agenda</h2>
-                <div id="agenda-container">
-                    {isAgendaEditing ? (
-                        <>
-                            <DraggableList
-                                items={meetingData.agenda}
-                                onReorder={(reordered) => setMeetingData({ ...meetingData, agenda: reordered })}
-                                onRemove={(index) => setMeetingData({ ...meetingData, agenda: meetingData.agenda.filter((_, i) => i !== index) })}
-                                renderItem={(item, index) => <span>{`${index + 1}. ${item}`}</span>}
-                                dataKeyPrefix="agenda"
-                            />
-                            <input type="text" placeholder="New agenda item" value={newAgendaItem} onChange={(e) => setNewAgendaItem(e.target.value)} style={{ width: 'calc(100% - 10px)', marginTop: '10px' }} />
-                            <button className="sidebar-btn" onClick={handleAddAgendaItem}>Add Item</button>
-                            <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => { setIsAgendaEditing(false); saveData(meetingData); }}>Save Changes</button>
-                        </>
-                    ) : (
-                        <>
-                            {meetingData.agenda.map((item, index) => (
-                                <div key={index} className={`agenda-item ${index === meetingData.currentAgendaIndex ? 'active' : ''}`}>
-                                    {`${index + 1}. ${item}`}
-                                </div>
-                            ))}
-                            {(userRole === 'admin' || userRole === 'chairman') && (
+            {/* This container defines the horizontal three-column layout and is vertically offset by CSS */}
+            <div className="main-container">
+                {/* Agenda Sidebar */}
+                <div className="sidebar sidebar-left">
+                    <h2>Agenda</h2>
+                    <div id="agenda-container">
+                        {isAgendaEditing ? (
+                            <>
+                                <DraggableList
+                                    items={meetingData.agenda}
+                                    onReorder={(reordered) => saveData({ ...meetingData, agenda: reordered })}
+                                    onRemove={(index) => {
+                                        const newAgenda = meetingData.agenda.filter((_, i) => i !== index);
+                                        const newIndex = meetingData.currentAgendaIndex >= newAgenda.length 
+                                            ? Math.max(0, newAgenda.length - 1) 
+                                            : meetingData.currentAgendaIndex;
+                                        saveData({ ...meetingData, agenda: newAgenda, currentAgendaIndex: newIndex });
+                                    }}
+                                    renderItem={(item, index) => <span>{`${index + 1}. ${item}`}</span>}
+                                    dataKeyPrefix="agenda"
+                                />
+                                <input type="text" placeholder="New agenda item" value={newAgendaItem} onChange={(e) => setNewAgendaItem(e.target.value)} style={{ width: 'calc(100% - 10px)', marginTop: '10px' }} />
+                                <button className="sidebar-btn" onClick={handleAddAgendaItem}>Add Item</button>
+                                <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => { setIsAgendaEditing(false); saveData(meetingData); }}>Save Changes</button>
+                            </>
+                        ) : (
+                            <>
+                                {meetingData.agenda.map((item, index) => (
+                                    <div key={index} className={`agenda-item ${index === meetingData.currentAgendaIndex ? 'active' : ''}`}>
+                                        {`${index + 1}. ${item}`}
+                                    </div>
+                                ))}
+                            </>
+                        )}
+                    </div>
+                    <div className="sidebar-footer">
+                        {!isAgendaEditing && (userRole === 'admin' || userRole === 'chairman') && (
+                            <>
                                 <div className="nav-buttons">
                                     <button className="sidebar-btn" onClick={() => handleAgendaNav(-1)}>Previous</button>
                                     <button className="sidebar-btn" onClick={() => handleAgendaNav(1)}>Next</button>
                                 </div>
-                            )}
-                        </>
-                    )}
+                                <button id="edit-agenda-btn" className="sidebar-btn" onClick={() => setIsAgendaEditing(true)}>Edit Agenda</button>
+                            </>
+                        )}
+                    </div>
                 </div>
-                {!isAgendaEditing && (userRole === 'admin' || userRole === 'chairman') && (
-                    <button id="edit-agenda-btn" className="sidebar-btn" onClick={() => setIsAgendaEditing(true)}>Edit Agenda</button>
-                )}
+
+                {/* Center Content */}
+                <div className="center-content">
+                    <div className="current-motion-box">
+                        <h3 id="motion-name">{currentMotion ? currentMotion.name : 'No Active Motion'}</h3>
+                        <p id="motion-description">{currentMotion ? currentMotion.description : 'The motion queue is empty.'}</p>
+                        {currentMotion && <p id="motion-creator" className="motion-creator-text">{`(Moved by: ${currentMotion.creator})`}</p>}
+                    </div>
+                </div>
+
+                {/* Motion Queue Sidebar */}
+                <div className="sidebar sidebar-right">
+                    <h2>Motion Queue</h2>
+                    <div id="motion-queue-container">
+                        {isMotionQueueEditing ? (
+                            <>
+                                <DraggableList
+                                    items={meetingData.motionQueue}
+                                    onReorder={(reordered) => saveData({ ...meetingData, motionQueue: reordered })}
+                                    onRemove={(index) => {
+                                        const newQueue = meetingData.motionQueue.filter((_, i) => i !== index);
+                                        const newIndex = meetingData.currentMotionIndex >= newQueue.length
+                                            ? Math.max(0, newQueue.length - 1)
+                                            : meetingData.currentMotionIndex;
+                                        saveData({ ...meetingData, motionQueue: newQueue, currentMotionIndex: newIndex });
+                                    }}
+                                    renderItem={(item) => <span>{item.name}</span>}
+                                    dataKeyPrefix="motion"
+                                />
+                                <div style={{ marginTop: '15px' }}>
+                                    <input type="text" placeholder="Motion Name" value={newMotion.name} onChange={(e) => setNewMotion({ ...newMotion, name: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }} />
+                                    <textarea placeholder="Description" rows="2" value={newMotion.description} onChange={(e) => setNewMotion({ ...newMotion, description: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }}></textarea>
+                                    <input type="text" placeholder="Moved by" value={newMotion.creator} onChange={(e) => setNewMotion({ ...newMotion, creator: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }} />
+                                </div>
+                                <button className="sidebar-btn" onClick={handleAddMotionItem}>Add Motion</button>
+                                <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => { setIsMotionQueueEditing(false); saveData(meetingData); }}>Save Changes</button>
+                            </>
+                        ) : (
+                            <>
+                                {meetingData.motionQueue.map((motion, index) => (
+                                    <div key={index} className={`motion-item ${index === meetingData.currentMotionIndex ? 'active' : ''}`}>
+                                        {`${index + 1}. ${motion.name}`}
+                                    </div>
+                                ))}
+                            </>
+                        )}
+                    </div>
+                    <div className="sidebar-footer">
+                        {!isMotionQueueEditing && (userRole === 'admin' || userRole === 'chairman') && (
+                            <>
+                                {meetingData.motionQueue.length > 1 && (
+                                    <div className="nav-buttons">
+                                        <button className="sidebar-btn" onClick={() => handleMotionNav(-1)}>Previous</button>
+                                        <button className="sidebar-btn" onClick={() => handleMotionNav(1)}>Next</button>
+                                    </div>
+                                )}
+                                <button id="edit-motion-queue-btn" className="sidebar-btn" onClick={() => setIsMotionQueueEditing(true)}>Edit Motion Queue</button>
+                            </>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            <div className="sidebar" id="motion-queue-sidebar">
-                <h2>Motion Queue</h2>
-                <div id="motion-queue-container">
-                    {isMotionQueueEditing ? (
-                        <>
-                            <DraggableList
-                                items={meetingData.motionQueue}
-                                onReorder={(reordered) => setMeetingData({ ...meetingData, motionQueue: reordered })}
-                                onRemove={(index) => setMeetingData({ ...meetingData, motionQueue: meetingData.motionQueue.filter((_, i) => i !== index) })}
-                                renderItem={(item) => <span>{item.name}</span>}
-                                dataKeyPrefix="motion"
-                            />
-                            <div style={{ marginTop: '15px' }}>
-                                <input type="text" placeholder="Motion Name" value={newMotion.name} onChange={(e) => setNewMotion({ ...newMotion, name: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }} />
-                                <textarea placeholder="Description" rows="2" value={newMotion.description} onChange={(e) => setNewMotion({ ...newMotion, description: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }}></textarea>
-                                <input type="text" placeholder="Moved by" value={newMotion.creator} onChange={(e) => setNewMotion({ ...newMotion, creator: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }} />
-                            </div>
-                            <button className="sidebar-btn" onClick={handleAddMotionItem}>Add Motion</button>
-                            <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => { setIsMotionQueueEditing(false); saveData(meetingData); }}>Save Changes</button>
-                        </>
-                    ) : (
-                        <>
-                            {meetingData.motionQueue.map((motion, index) => (
-                                <div key={index} className={`motion-item ${index === meetingData.currentMotionIndex ? 'active' : ''}`}>
-                                    {`${index + 1}. ${motion.name}`}
-                                </div>
-                            ))}
-                            {(userRole === 'admin' || userRole === 'chairman') && meetingData.motionQueue.length > 1 && (
-                                <div className="nav-buttons">
-                                    <button className="sidebar-btn" onClick={() => handleMotionNav(-1)}>Previous</button>
-                                    <button className="sidebar-btn" onClick={() => handleMotionNav(1)}>Next</button>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-                {!isMotionQueueEditing && (userRole === 'admin' || userRole === 'chairman') && (
-                    <button id="edit-motion-queue-btn" className="sidebar-btn" onClick={() => setIsMotionQueueEditing(true)}>Edit Motion Queue</button>
-                )}
+            <div className="footer">
+                <button className="vote-button aye">AYE</button>
+                <button className="vote-button no">NO</button>
+                <button className="vote-button hand">
+                    <i className="bi bi-hand-raised raise-hand-icon"></i>
+                    Raise Hand
+                </button>
             </div>
         </div>
     );
