@@ -1,0 +1,225 @@
+import React, { useState, useEffect, useRef } from 'react';
+import '../css/meeting_style.css'; // Assuming styles are compatible
+
+const MEETING_STORAGE_KEY = 'ronr-meetingData';
+
+const initialMeetingData = {
+    currentAgendaIndex: 0,
+    currentMotionIndex: 0,
+    agenda: [
+        "Call to order",
+        "Approval of previous minutes",
+        "Report from the Finance Committee",
+        "New Business"
+    ],
+    motionQueue: [
+        { name: "Approve new budget for Q3", description: `"I move to approve the new budget for the third quarter of this fiscal year."`, creator: "Jane Doe" },
+        { name: "Table the discussion", description: "To postpone the current discussion.", creator: "John Smith" },
+        { name: "Amend the previous motion", description: "To make a change to the budget motion.", creator: "Emily White" },
+        { name: "End the debate", description: "To call for an immediate vote.", creator: "David Green" }
+    ]
+};
+
+const DraggableList = ({ items, onReorder, onRemove, renderItem, dataKeyPrefix }) => {
+    const [draggedIndex, setDraggedIndex] = useState(null);
+
+    const handleDragStart = (e, index) => {
+        setDraggedIndex(index);
+        setTimeout(() => e.target.classList.add('dragging'), 0);
+    };
+
+    const handleDragEnd = (e) => {
+        e.target.classList.remove('dragging');
+        setDraggedIndex(null);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+    };
+
+    const handleDrop = (e, dropIndex) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === dropIndex) return;
+
+        const reorderedItems = [...items];
+        const [draggedItem] = reorderedItems.splice(draggedIndex, 1);
+        reorderedItems.splice(dropIndex, 0, draggedItem);
+        onReorder(reorderedItems);
+    };
+
+    return (
+        <div>
+            {items.map((item, index) => (
+                <div
+                    key={index}
+                    className="agenda-item-edit"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, index)}
+                    data-key={`${dataKeyPrefix}-${index}`}
+                >
+                    {renderItem(item, index)}
+                    <button className="remove-agenda-item-btn" onClick={() => onRemove(index)}>&times;</button>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const MeetingPage = () => {
+    const [meetingData, setMeetingData] = useState(null);
+    const [isAgendaEditing, setIsAgendaEditing] = useState(false);
+    const [isMotionQueueEditing, setIsMotionQueueEditing] = useState(false);
+    const [newAgendaItem, setNewAgendaItem] = useState('');
+    const [newMotion, setNewMotion] = useState({ name: '', description: '', creator: '' });
+
+    const userRole = localStorage.getItem('currentUserRole');
+
+    useEffect(() => {
+        const storedData = localStorage.getItem(MEETING_STORAGE_KEY);
+        let data;
+        try {
+            data = storedData ? JSON.parse(storedData) : initialMeetingData;
+        } catch (e) {
+            console.error("Error parsing meeting data from localStorage", e);
+            data = initialMeetingData;
+        }
+        setMeetingData(data);
+        if (!storedData) {
+            localStorage.setItem(MEETING_STORAGE_KEY, JSON.stringify(data));
+        }
+    }, []);
+
+    const saveData = (newData) => {
+        setMeetingData(newData);
+        localStorage.setItem(MEETING_STORAGE_KEY, JSON.stringify(newData));
+    };
+
+    const handleAgendaNav = (direction) => {
+        const newIndex = meetingData.currentAgendaIndex + direction;
+        if (newIndex >= 0 && newIndex < meetingData.agenda.length) {
+            saveData({ ...meetingData, currentAgendaIndex: newIndex });
+        }
+    };
+
+    const handleMotionNav = (direction) => {
+        const newIndex = meetingData.currentMotionIndex + direction;
+        if (newIndex >= 0 && newIndex < meetingData.motionQueue.length) {
+            saveData({ ...meetingData, currentMotionIndex: newIndex });
+        }
+    };
+
+    const handleAddAgendaItem = () => {
+        if (newAgendaItem.trim()) {
+            const updatedAgenda = [...meetingData.agenda, newAgendaItem.trim()];
+            setMeetingData({ ...meetingData, agenda: updatedAgenda });
+            setNewAgendaItem('');
+        }
+    };
+
+    const handleAddMotionItem = () => {
+        if (newMotion.name.trim() && newMotion.creator.trim()) {
+            const updatedQueue = [...meetingData.motionQueue, newMotion];
+            setMeetingData({ ...meetingData, motionQueue: updatedQueue });
+            setNewMotion({ name: '', description: '', creator: '' });
+        }
+    };
+
+    if (!meetingData) {
+        return <div>Loading...</div>;
+    }
+
+    const currentMotion = meetingData.motionQueue[meetingData.currentMotionIndex];
+
+    return (
+        <div className="meeting-container">
+            <div className="main-content">
+                <div id="motion-name">{currentMotion ? `Current Motion: ${currentMotion.name}` : 'No Active Motion'}</div>
+                <div id="motion-description">{currentMotion ? currentMotion.description : 'The motion queue is empty.'}</div>
+                <div id="motion-creator">{currentMotion ? `(Moved by: ${currentMotion.creator})` : ''}</div>
+            </div>
+
+            <div className="sidebar" id="agenda-sidebar">
+                <h2>Agenda</h2>
+                <div id="agenda-container">
+                    {isAgendaEditing ? (
+                        <>
+                            <DraggableList
+                                items={meetingData.agenda}
+                                onReorder={(reordered) => setMeetingData({ ...meetingData, agenda: reordered })}
+                                onRemove={(index) => setMeetingData({ ...meetingData, agenda: meetingData.agenda.filter((_, i) => i !== index) })}
+                                renderItem={(item, index) => <span>{`${index + 1}. ${item}`}</span>}
+                                dataKeyPrefix="agenda"
+                            />
+                            <input type="text" placeholder="New agenda item" value={newAgendaItem} onChange={(e) => setNewAgendaItem(e.target.value)} style={{ width: 'calc(100% - 10px)', marginTop: '10px' }} />
+                            <button className="sidebar-btn" onClick={handleAddAgendaItem}>Add Item</button>
+                            <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => { setIsAgendaEditing(false); saveData(meetingData); }}>Save Changes</button>
+                        </>
+                    ) : (
+                        <>
+                            {meetingData.agenda.map((item, index) => (
+                                <div key={index} className={`agenda-item ${index === meetingData.currentAgendaIndex ? 'active' : ''}`}>
+                                    {`${index + 1}. ${item}`}
+                                </div>
+                            ))}
+                            {(userRole === 'admin' || userRole === 'chairman') && (
+                                <div className="nav-buttons">
+                                    <button className="sidebar-btn" onClick={() => handleAgendaNav(-1)}>Previous</button>
+                                    <button className="sidebar-btn" onClick={() => handleAgendaNav(1)}>Next</button>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+                {!isAgendaEditing && (userRole === 'admin' || userRole === 'chairman') && (
+                    <button id="edit-agenda-btn" className="sidebar-btn" onClick={() => setIsAgendaEditing(true)}>Edit Agenda</button>
+                )}
+            </div>
+
+            <div className="sidebar" id="motion-queue-sidebar">
+                <h2>Motion Queue</h2>
+                <div id="motion-queue-container">
+                    {isMotionQueueEditing ? (
+                        <>
+                            <DraggableList
+                                items={meetingData.motionQueue}
+                                onReorder={(reordered) => setMeetingData({ ...meetingData, motionQueue: reordered })}
+                                onRemove={(index) => setMeetingData({ ...meetingData, motionQueue: meetingData.motionQueue.filter((_, i) => i !== index) })}
+                                renderItem={(item) => <span>{item.name}</span>}
+                                dataKeyPrefix="motion"
+                            />
+                            <div style={{ marginTop: '15px' }}>
+                                <input type="text" placeholder="Motion Name" value={newMotion.name} onChange={(e) => setNewMotion({ ...newMotion, name: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }} />
+                                <textarea placeholder="Description" rows="2" value={newMotion.description} onChange={(e) => setNewMotion({ ...newMotion, description: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }}></textarea>
+                                <input type="text" placeholder="Moved by" value={newMotion.creator} onChange={(e) => setNewMotion({ ...newMotion, creator: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }} />
+                            </div>
+                            <button className="sidebar-btn" onClick={handleAddMotionItem}>Add Motion</button>
+                            <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => { setIsMotionQueueEditing(false); saveData(meetingData); }}>Save Changes</button>
+                        </>
+                    ) : (
+                        <>
+                            {meetingData.motionQueue.map((motion, index) => (
+                                <div key={index} className={`motion-item ${index === meetingData.currentMotionIndex ? 'active' : ''}`}>
+                                    {`${index + 1}. ${motion.name}`}
+                                </div>
+                            ))}
+                            {(userRole === 'admin' || userRole === 'chairman') && meetingData.motionQueue.length > 1 && (
+                                <div className="nav-buttons">
+                                    <button className="sidebar-btn" onClick={() => handleMotionNav(-1)}>Previous</button>
+                                    <button className="sidebar-btn" onClick={() => handleMotionNav(1)}>Next</button>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+                {!isMotionQueueEditing && (userRole === 'admin' || userRole === 'chairman') && (
+                    <button id="edit-motion-queue-btn" className="sidebar-btn" onClick={() => setIsMotionQueueEditing(true)}>Edit Motion Queue</button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default MeetingPage;
