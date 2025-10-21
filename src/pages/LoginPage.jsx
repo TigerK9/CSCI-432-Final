@@ -50,54 +50,55 @@ const LoginPage = () => {
     };
 
     return (
-        // The main container that the CSS targets
-        <div className="login-container">
-            
-            {/* FIX 1: Changed <h1> to <h2> to match the CSS selector (.login-container h2) */}
-            <h2>Sign In</h2> 
-            
-            {/* FIX 2: Removed the redundant descriptive <p> tag that was inside the login-box in the old version */}
-            
-            <form id="loginForm" onSubmit={handleSubmit}>
-                <div className="input-group">
-                    <label htmlFor="email">Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="input-group">
-                    <label htmlFor="password">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
+        <div className="login-page-wrapper">
+            {/* The main container that the CSS targets */}
+            <div className="login-container">
                 
-                {/* FIX 3: Added the necessary 'signin-button' class */}
-                <button 
-                    type="submit" 
-                    id="signInButton"
-                    className="signin-button"
-                    disabled={!isFormValid}>
-                    Sign In
-                </button>
-            </form>
+                {/* FIX 1: Changed <h1> to <h2> to match the CSS selector (.login-container h2) */}
+                <h2>Sign In</h2> 
+                
+                {/* FIX 2: Removed the redundant descriptive <p> tag that was inside the login-box in the old version */}
+                
+                <form id="loginForm" onSubmit={handleSubmit}>
+                    <div className="input-group">
+                        <label htmlFor="email">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="Enter your email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="input-group">
+                        <label htmlFor="password">Password</label>
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Enter your password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
+                    
+                    {/* FIX 3: Added the necessary 'signin-button' class */}
+                    <button 
+                        type="submit" 
+                        id="signInButton"
+                        className="signin-button"
+                        disabled={!isFormValid}>
+                        Sign In
+                    </button>
+                </form>
 
-            {/* FIX 4: Recreated the structure of the old .links div */}
-            <div className="links">
-                <a href="#">Forgot Password?</a>
-                <span className="divider">OR</span>
-                {/* Use the React Router Link component */}
-                <Link to="/signup">Sign Up</Link>
+                {/* FIX 4: Recreated the structure of the old .links div */}
+                <div className="links">
+                    <span className="divider">OR</span>
+                    {/* Use the React Router Link component */}
+                    <Link to="/signup">Sign Up</Link>
+                </div>
             </div>
         </div>
     );
