@@ -8,7 +8,8 @@ const initialProfileData = {
     name: 'John Doe',
     description: 'A passionate developer.',
     email: 'john.doe@example.com',
-    phone: '555-123-4567'
+    phone: '555-123-4567',
+    profilePicture: '' // Add field for profile picture
 };
 
 const ProfilePage = () => {
@@ -17,11 +18,14 @@ const ProfilePage = () => {
         name: '',
         description: '',
         email: '',
-        phone: ''
+        phone: '',
+        profilePicture: '' // Add field for profile picture
     });
 
     useEffect(() => {
         const storedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
+        const currentUserEmail = localStorage.getItem('currentUserEmail');
+        const currentUserName = localStorage.getItem('currentUserName');
         let profileData;
         try {
             profileData = storedProfile ? JSON.parse(storedProfile) : initialProfileData;
@@ -29,9 +33,16 @@ const ProfilePage = () => {
             console.error("Error parsing profile data from localStorage", e);
             profileData = initialProfileData;
         }
+
+        // If this is the first load, populate with user data, otherwise use stored data
+        if (!storedProfile) {
+            profileData.name = currentUserName || '';
+            profileData.email = currentUserEmail || '';
+        }
+
         setProfile(profileData);
         // Pre-fill editData with current profile data for better UX
-        setEditData(profileData); 
+        setEditData(profileData);
 
         if (!storedProfile) {
             localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileData));
@@ -43,6 +54,18 @@ const ProfilePage = () => {
         setEditData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                // The result is a Base64 string which can be stored and displayed
+                setEditData(prev => ({ ...prev, profilePicture: reader.result }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSaveChanges = () => {
         // Use the current editData state directly, as it should hold the full form data
         const updatedProfile = {
@@ -50,6 +73,7 @@ const ProfilePage = () => {
             description: editData.description,
             email: editData.email,
             phone: editData.phone,
+            profilePicture: editData.profilePicture, // Save the picture
         };
 
         setProfile(updatedProfile);
@@ -89,10 +113,24 @@ const ProfilePage = () => {
                     <div className="profile-picture-section">
                         {/* Restore the profile picture placeholder HTML */}
                         <div className="profile-picture-placeholder">
-                            <span>Profile Picture</span>
+                            {editData.profilePicture ? (
+                                <img src={editData.profilePicture} alt="Profile Preview" />
+                            ) : (
+                                <span>Profile Picture</span>
+                            )}
                         </div>
-                        <button>Upload New Photo</button>
-                        {/* The old HTML did not display current data, so we remove the display section */}
+                        {/* Hidden file input */}
+                        <input
+                            type="file"
+                            id="photo-upload"
+                            accept="image/png, image/jpeg, image/gif"
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                        />
+                        {/* Styled button that triggers the file input */}
+                        <label htmlFor="photo-upload" className="save-button" style={{ cursor: 'pointer', textAlign: 'center' }}>
+                            Upload Photo
+                        </label>
                     </div>
 
                     {/* Right Column: Input Fields (This is where the 'profile-input-fields' class is required) */}
@@ -133,7 +171,8 @@ const ProfilePage = () => {
                                 name="email" 
                                 value={editData.email} 
                                 onChange={handleInputChange} 
-                                placeholder="your@example.com" 
+                                placeholder="your@example.com"
+                                readOnly // Email should be tied to the account
                             />
                         </div>
 
