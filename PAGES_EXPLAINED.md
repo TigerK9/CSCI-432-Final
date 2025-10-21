@@ -30,6 +30,7 @@
 
 **Things to Add (TODO):**
 * THESE ARE FOR LATER, LOW PRIORITY AS OF 10/19/2025
+* [ ] Sign up link should work
 * [ ] Implement strong password validation criteria (e.g., minimum length, special characters).
 * [ ] Add a confirmation step or email verification logic.
 
