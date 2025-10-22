@@ -160,16 +160,14 @@
     border: 1px solid #ddd;
     margin-bottom: 5px;
     cursor: grab;
+    transition: none;
 }
-.drop-indicator {
-    height: 3px;
-    background-color: #2196F3;
-    margin: 4px 0;
-    border-radius: 2px;
-}
+
 .agenda-item-edit.dragging {
-    opacity: 0.5;
+    opacity: 0; /* Make the original item invisible */
+    background-color: #d9edf7; /* Highlight the dragged item */
 }
+
 .remove-agenda-item-btn {
     background: none;
     border: none;

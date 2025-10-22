@@ -23,48 +23,71 @@ const initialMeetingData = {
 
 const DraggableList = ({ items, onReorder, onRemove, renderItem, dataKeyPrefix }) => {
     const [draggedIndex, setDraggedIndex] = useState(null);
+    const [overIndex, setOverIndex] = useState(null);
 
     const handleDragStart = (e, index) => {
-        setDraggedIndex(index);
-        setTimeout(() => e.target.classList.add('dragging'), 0);
+        // Necessary for Firefox to allow dragging
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', e.target);
+
+        // Use a timeout to apply the 'dragging' class after the browser has created the drag image
+        setTimeout(() => setDraggedIndex(index), 0);
     };
 
     const handleDragEnd = (e) => {
-        e.target.classList.remove('dragging');
         setDraggedIndex(null);
+        setOverIndex(null);
     };
 
-    const handleDragOver = (e) => {
+    const handleDragOver = (e, index) => {
         e.preventDefault();
+        if (index !== overIndex) {
+            setOverIndex(index);
+        }
     };
 
-    const handleDrop = (e, dropIndex) => {
+    const handleDrop = (e) => {
         e.preventDefault();
-        if (draggedIndex === null || draggedIndex === dropIndex) return;
+        if (draggedIndex === null || overIndex === null || draggedIndex === overIndex) {
+            setDraggedIndex(null);
+            setOverIndex(null);
+            return;
+        }
 
         const reorderedItems = [...items];
         const [draggedItem] = reorderedItems.splice(draggedIndex, 1);
-        reorderedItems.splice(dropIndex, 0, draggedItem);
+        reorderedItems.splice(overIndex, 0, draggedItem);
         onReorder(reorderedItems);
+        setDraggedIndex(null);
+        setOverIndex(null);
     };
 
     return (
-        <div>
-            {items.map((item, index) => (
-                <div
-                    key={index}
-                    className="agenda-item-edit"
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, index)}
-                    data-key={`${dataKeyPrefix}-${index}`}
-                >
-                    {renderItem(item, index)}
-                    <button className="remove-agenda-item-btn" onClick={() => onRemove(index)}>&times;</button>
-                </div>
-            ))}
+        <div onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
+            {items.map((item, index) => {
+                let transform = 'translateY(0)';
+                if (draggedIndex !== null && overIndex !== null) {
+                    if (draggedIndex < overIndex && index > draggedIndex && index <= overIndex) {
+                        transform = 'translateY(-100%)'; // Move up
+                    } else if (draggedIndex > overIndex && index < draggedIndex && index >= overIndex) {
+                        transform = 'translateY(100%)'; // Move down
+                    }
+                }
+
+                return (
+                    <div key={index}
+                         className={`agenda-item-edit ${draggedIndex === index ? 'dragging' : ''}`}
+                         style={{ transform }}
+                         draggable
+                         onDragStart={(e) => handleDragStart(e, index)}
+                         onDragEnd={handleDragEnd}
+                         onDragOver={(e) => handleDragOver(e, index)}
+                         data-key={`${dataKeyPrefix}-${index}`}>
+                        {renderItem(item, index)}
+                        <button className="remove-agenda-item-btn" onClick={() => onRemove(index)}>&times;</button>
+                    </div>
+                );
+            })}
         </div>
     );
 };
