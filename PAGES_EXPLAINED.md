@@ -92,7 +92,6 @@ The first item is relatively medium priority, complete the MeetingPage functiona
 * **Member Interaction:** All users see **AYE**, **NO**, and **Raise Hand** buttons, allowing basic interaction with the current debate.
 
 **Things to Add (TODO):**
-* [ ] Make each meeting unique, that currently means each unique meeting has its own variable in local storage.
 * [ ] Add an end meeting button, which will send everyone to the MinutesPage.
 * [ ] Add ability for chairman/admin to start a vote for a motion. This will start taking votes of aye/no.
 * [ ] Add more robust editing of the motions and agenda (currently dragging and dropping is clanky).
