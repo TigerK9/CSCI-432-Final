@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import '../css/meeting_style.css'; // Your specific CSS file
-
-const MEETING_STORAGE_KEY = 'ronr-meetingData';
 
 const initialMeetingData = {
     currentAgendaIndex: 0,
@@ -93,6 +91,9 @@ const DraggableList = ({ items, onReorder, onRemove, renderItem, dataKeyPrefix }
 };
 
 const MeetingPage = () => {
+    const { meetingId } = useParams();
+    const meetingStorageKey = `ronr-meetingData-${meetingId}`;
+
     const [meetingData, setMeetingData] = useState(null);
     const [isAgendaEditing, setIsAgendaEditing] = useState(false);
     const [isMotionQueueEditing, setIsMotionQueueEditing] = useState(false);
@@ -102,7 +103,7 @@ const MeetingPage = () => {
     const userRole = localStorage.getItem('currentUserRole');
 
     useEffect(() => {
-        const storedData = localStorage.getItem(MEETING_STORAGE_KEY);
+        const storedData = localStorage.getItem(meetingStorageKey);
         let data;
         try {
             data = storedData ? JSON.parse(storedData) : initialMeetingData;
@@ -112,13 +113,13 @@ const MeetingPage = () => {
         }
         setMeetingData(data);
         if (!storedData) {
-            localStorage.setItem(MEETING_STORAGE_KEY, JSON.stringify(data));
+            localStorage.setItem(meetingStorageKey, JSON.stringify(data));
         }
-    }, []);
+    }, [meetingId, meetingStorageKey]);
 
     const saveData = (newData) => {
         setMeetingData(newData);
-        localStorage.setItem(MEETING_STORAGE_KEY, JSON.stringify(newData));
+        localStorage.setItem(meetingStorageKey, JSON.stringify(newData));
     };
 
     const handleAgendaNav = (direction) => {
