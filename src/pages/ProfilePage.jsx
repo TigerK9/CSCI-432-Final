@@ -2,51 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../css/profileEditor_style.css'; // Importing the correct CSS file
 
-const PROFILE_STORAGE_KEY = 'ronr-profileData';
-
-const initialProfileData = {
-    name: 'John Doe',
-    description: 'A passionate developer.',
-    email: 'john.doe@example.com',
-    phone: '555-123-4567',
-    profilePicture: '' // Add field for profile picture
-};
-
 const ProfilePage = () => {
     const [profile, setProfile] = useState(null);
     const [editData, setEditData] = useState({
-        name: '',
+        name: '', // name is now part of the user model
         description: '',
         email: '',
-        phone: '',
-        profilePicture: '' // Add field for profile picture
+        phone: ''
     });
 
     useEffect(() => {
-        const storedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
-        const currentUserEmail = localStorage.getItem('currentUserEmail');
-        const currentUserName = localStorage.getItem('currentUserName');
-        let profileData;
-        try {
-            profileData = storedProfile ? JSON.parse(storedProfile) : initialProfileData;
-        } catch (e) {
-            console.error("Error parsing profile data from localStorage", e);
-            profileData = initialProfileData;
-        }
-
-        // If this is the first load, populate with user data, otherwise use stored data
-        if (!storedProfile) {
-            profileData.name = currentUserName || '';
-            profileData.email = currentUserEmail || '';
-        }
-
-        setProfile(profileData);
-        // Pre-fill editData with current profile data for better UX
-        setEditData(profileData);
-
-        if (!storedProfile) {
-            localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileData));
-        }
+        const fetchProfile = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                // Handle not logged in case
+                return;
+            }
+            try {
+                const response = await fetch('http://localhost:5002/api/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to fetch profile');
+                const data = await response.json();
+                setProfile(data);
+                setEditData(data); // Pre-fill form with fetched data
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+            }
+        };
+        fetchProfile();
     }, []);
 
     const handleInputChange = (e) => {
@@ -54,32 +40,34 @@ const ProfilePage = () => {
         setEditData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                // The result is a Base64 string which can be stored and displayed
-                setEditData(prev => ({ ...prev, profilePicture: reader.result }));
-            };
-            reader.readAsDataURL(file);
+    const handleSaveChanges = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const response = await fetch('http://localhost:5002/api/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: editData.name,
+                    description: editData.description,
+                    phone: editData.phone,
+                    // profilePicture is no longer sent
+                })
+            });
+            if (!response.ok) throw new Error('Failed to update profile');
+            const updatedProfile = await response.json();
+            setProfile(updatedProfile);
+            // Also update the name in localStorage if it changed
+            localStorage.setItem('currentUserName', updatedProfile.name);
+            alert('Profile updated successfully!');
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            alert('Failed to update profile.');
         }
-    };
-
-    const handleSaveChanges = () => {
-        // Use the current editData state directly, as it should hold the full form data
-        const updatedProfile = {
-            name: editData.name,
-            description: editData.description,
-            email: editData.email,
-            phone: editData.phone,
-            profilePicture: editData.profilePicture, // Save the picture
-        };
-
-        setProfile(updatedProfile);
-        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(updatedProfile));
-        
-        alert('Profile updated successfully!');
     };
 
     if (!profile) {
@@ -112,25 +100,9 @@ const ProfilePage = () => {
                     {/* Left Column: Profile Picture Section */}
                     <div className="profile-picture-section">
                         {/* Restore the profile picture placeholder HTML */}
-                        <div className="profile-picture-placeholder">
-                            {editData.profilePicture ? (
-                                <img src={editData.profilePicture} alt="Profile Preview" />
-                            ) : (
-                                <span>Profile Picture</span>
-                            )}
+                        <div className="profile-picture-placeholder" style={{ fontSize: '8rem', color: 'white', backgroundColor: '#607d8b' }}>
+                            {profile.name ? profile.name.charAt(0).toUpperCase() : ''}
                         </div>
-                        {/* Hidden file input */}
-                        <input
-                            type="file"
-                            id="photo-upload"
-                            accept="image/png, image/jpeg, image/gif"
-                            onChange={handleFileChange}
-                            style={{ display: 'none' }}
-                        />
-                        {/* Styled button that triggers the file input */}
-                        <label htmlFor="photo-upload" className="save-button" style={{ cursor: 'pointer', textAlign: 'center' }}>
-                            Upload Photo
-                        </label>
                     </div>
 
                     {/* Right Column: Input Fields (This is where the 'profile-input-fields' class is required) */}

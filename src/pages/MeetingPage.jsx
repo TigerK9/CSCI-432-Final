@@ -1,23 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import '../css/meeting_style.css'; // Your specific CSS file
-
-const initialMeetingData = {
-    currentAgendaIndex: 0,
-    currentMotionIndex: 0,
-    agenda: [
-        "Call to order",
-        "Approval of previous minutes",
-        "Report from the Finance Committee",
-        "New Business"
-    ],
-    motionQueue: [
-        { name: "Approve new budget for Q3", description: `"I move to approve the new budget for the third quarter of this fiscal year."`, creator: "Jane Doe" },
-        { name: "Table the discussion", description: "To postpone the current discussion.", creator: "John Smith" },
-        { name: "Amend the previous motion", description: "To make a change to the budget motion.", creator: "Emily White" },
-        { name: "End the debate", description: "To call for an immediate vote.", creator: "David Green" }
-    ]
-};
 
 const DraggableList = ({ items, onReorder, onRemove, renderItem, dataKeyPrefix }) => {
     const [draggedIndex, setDraggedIndex] = useState(null);
@@ -92,6 +75,7 @@ const DraggableList = ({ items, onReorder, onRemove, renderItem, dataKeyPrefix }
 
 const MeetingPage = () => {
     const { meetingId } = useParams();
+    const navigate = useNavigate();
     const meetingStorageKey = `ronr-meetingData-${meetingId}`;
 
     const [meetingData, setMeetingData] = useState(null);
@@ -103,23 +87,29 @@ const MeetingPage = () => {
     const userRole = localStorage.getItem('currentUserRole');
 
     useEffect(() => {
-        const storedData = localStorage.getItem(meetingStorageKey);
-        let data;
-        try {
-            data = storedData ? JSON.parse(storedData) : initialMeetingData;
-        } catch (e) {
-            console.error("Error parsing meeting data from localStorage", e);
-            data = initialMeetingData;
-        }
-        setMeetingData(data);
-        if (!storedData) {
-            localStorage.setItem(meetingStorageKey, JSON.stringify(data));
-        }
-    }, [meetingId, meetingStorageKey]);
+        const fetchMeetingData = async () => {
+            try {
+                const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                setMeetingData(data);
+            } catch (error) {
+                console.error("Failed to fetch meeting data:", error);
+                // Optionally, handle the error, e.g., navigate to an error page
+            }
+        };
+        fetchMeetingData();
+    }, [meetingId]);
 
-    const saveData = (newData) => {
+    const saveData = async (newData) => {
         setMeetingData(newData);
-        localStorage.setItem(meetingStorageKey, JSON.stringify(newData));
+        await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newData),
+        });
     };
 
     const handleAgendaNav = (direction) => {
@@ -138,19 +128,21 @@ const MeetingPage = () => {
 
     const handleAddAgendaItem = () => {
         if (newAgendaItem.trim()) {
-            const updatedAgenda = [...meetingData.agenda, newAgendaItem.trim()];
-            setMeetingData({ ...meetingData, agenda: updatedAgenda });
+            const newData = { ...meetingData, agenda: [...meetingData.agenda, newAgendaItem.trim()] };
+            saveData(newData);
             setNewAgendaItem('');
         }
     };
 
     const handleAddMotionItem = () => {
         if (newMotion.name.trim() && newMotion.creator.trim()) {
-            const updatedQueue = [...meetingData.motionQueue, newMotion];
-            setMeetingData({ ...meetingData, motionQueue: updatedQueue });
+            const newData = { ...meetingData, motionQueue: [...meetingData.motionQueue, newMotion] };
+            saveData(newData);
             setNewMotion({ name: '', description: '', creator: '' });
         }
     };
+
+
 
     if (!meetingData) {
         return <div>Loading...</div>;
@@ -171,6 +163,12 @@ const MeetingPage = () => {
                     <Link to="/profile" className="taskbar-icon" title="Profile">
                         <i className="bi-person"></i>
                     </Link>
+                    <a href="#" onClick={() => {
+                        localStorage.clear();
+                        navigate('/login');
+                    }} className="taskbar-icon" title="Logout">
+                        <i className="bi-box-arrow-right"></i>
+                    </a>
                 </div>
             </div>
 
@@ -197,7 +195,7 @@ const MeetingPage = () => {
                                 />
                                 <input type="text" placeholder="New agenda item" value={newAgendaItem} onChange={(e) => setNewAgendaItem(e.target.value)} style={{ width: 'calc(100% - 10px)', marginTop: '10px' }} />
                                 <button className="sidebar-btn" onClick={handleAddAgendaItem}>Add Item</button>
-                                <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => { setIsAgendaEditing(false); saveData(meetingData); }}>Save Changes</button>
+                                <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => setIsAgendaEditing(false)}>Done Editing</button>
                             </>
                         ) : (
                             <>
@@ -256,7 +254,7 @@ const MeetingPage = () => {
                                     <input type="text" placeholder="Moved by" value={newMotion.creator} onChange={(e) => setNewMotion({ ...newMotion, creator: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }} />
                                 </div>
                                 <button className="sidebar-btn" onClick={handleAddMotionItem}>Add Motion</button>
-                                <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => { setIsMotionQueueEditing(false); saveData(meetingData); }}>Save Changes</button>
+                                <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => setIsMotionQueueEditing(false)}>Done Editing</button>
                             </>
                         ) : (
                             <>
