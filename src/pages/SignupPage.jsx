@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import '../css/signup_style.css'; // Assuming styles are compatible
 
-const USERS_STORAGE_KEY = 'ronr-users';
-
 const SignupPage = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -12,25 +10,25 @@ const SignupPage = () => {
 
     const isFormValid = name.trim() !== '' && email.trim() !== '' && password.trim() !== '';
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isFormValid) return;
 
-        const users = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY)) || {};
-
-        if (users[email]) {
-            alert('An account with this email already exists. Please log in.');
-            return;
+        try {
+            const response = await fetch('http://localhost:5002/api/users/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to create account.');
+            }
+            alert('Account created successfully! Please log in.');
+            navigate('/login');
+        } catch (error) {
+            alert(error.message);
         }
-
-        users[email] = {
-            password: password,
-            role: 'member' // Default role for new signups
-        };
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-
-        alert('Account created successfully! Please log in.');
-        navigate('/login');
     };
 
     return (
@@ -74,7 +72,11 @@ const SignupPage = () => {
                             className="w-full p-3 border border-gray-300 rounded-lg text-base outline-none transition duration-300 input-focus"
                         />
                     </div>
-                    <button type="submit" disabled={!isFormValid} className="w-full p-3 mt-4 mb-6 btn-primary text-white font-semibold rounded-lg text-lg transition duration-300 hover:scale-[1.01] active:scale-[0.99] btn-disabled-state">
+                    <button
+                        type="submit"
+                        disabled={!isFormValid}
+                        className={`w-full p-3 mt-4 mb-6 btn-primary text-white font-semibold rounded-lg text-lg transition duration-300 hover:scale-[1.01] active:scale-[0.99] ${!isFormValid ? 'btn-disabled-state' : 'btn-valid-state'}`}
+                    >
                         Create Account
                     </button>
                 </form>

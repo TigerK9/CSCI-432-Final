@@ -91,6 +91,7 @@
     justify-content: space-between;
     padding: 0.2rem 1rem; /* Adjusted padding from 1rem to match provided HTML */
     cursor: pointer;
+    position: relative; /* Needed for positioning the delete button */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     height: 17rem; /* Added height from provided HTML */
 }

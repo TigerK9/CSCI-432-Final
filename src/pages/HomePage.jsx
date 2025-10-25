@@ -2,34 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import '../css/home_style.css'; // Assuming styles are compatible
 
-const MEETINGS_STORAGE_KEY = 'ronr-meetingsData';
-
-const initialMeetingsData = [
-  {
-    name: "Meeting 1",
-    description: "Project kickoff discussion",
-    datetime: "Sept 25, 2025 · 2:00 PM",
-    link: "/meeting/1", // Using React Router friendly links
-  },
-  {
-    name: "Meeting 2",
-    description: "Design brainstorming session",
-    datetime: "Sept 26, 2025 · 11:00 AM",
-    link: "/meeting/2",
-  },
-  {
-    name: "Meeting 3",
-    description: "Weekly status update",
-    datetime: "Sept 27, 2025 · 9:30 AM",
-    link: "/meeting/3",
-  },
-];
-
 const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting }) => {
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default form submission which causes a page reload
     const formData = new FormData(e.target);
     const name = formData.get('meetingName');
     const description = formData.get('meetingDescription');
@@ -41,7 +18,6 @@ const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting }) => {
       datetime: new Date(date).toLocaleString('en-US', {
         month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
       }).replace(',', ' ·'),
-      link: `/meeting/${Date.now()}`, // Generate a unique link/ID
     };
 
     onCreateMeeting(newMeeting);
@@ -76,18 +52,23 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedMeetings = localStorage.getItem(MEETINGS_STORAGE_KEY);
-    let meetingsData;
-    try {
-      meetingsData = storedMeetings ? JSON.parse(storedMeetings) : initialMeetingsData;
-    } catch (e) {
-      console.error("Error parsing meetings from localStorage", e);
-      meetingsData = initialMeetingsData;
-    }
-    setMeetings(meetingsData);
-    if (!storedMeetings) {
-      localStorage.setItem(MEETINGS_STORAGE_KEY, JSON.stringify(meetingsData));
-    }
+    const fetchMeetings = async () => {
+      try {
+        const response = await fetch('http://localhost:5002/api/meetings');
+        if (!response.ok) {
+          throw new Error('Failed to fetch meetings');
+        }
+        const data = await response.json();
+        // If the database is empty, you might want to seed it with initial data
+        // For now, we'll just set what we get.
+        setMeetings(data);
+      } catch (error) {
+        console.error("Error fetching meetings:", error);
+        setMeetings([]); // Set to empty array on error
+      }
+    };
+
+    fetchMeetings();
   }, []);
 
   const handleLogout = () => {
@@ -97,20 +78,57 @@ const HomePage = () => {
     navigate('/login');
   };
 
-  const handleCreateMeeting = (newMeeting) => {
-    const updatedMeetings = [...meetings, newMeeting];
-    setMeetings(updatedMeetings);
-    localStorage.setItem(MEETINGS_STORAGE_KEY, JSON.stringify(updatedMeetings));
+  const handleCreateMeeting = async (newMeeting) => {
+    try {
+      const response = await fetch('http://localhost:5002/api/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMeeting),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const savedMeeting = await response.json();
+      setMeetings([...meetings, savedMeeting]);
+    } catch (error) {
+      console.error("Failed to create meeting:", error);
+      alert("Failed to create meeting. Please check the console for more details.");
+    }
     setIsModalOpen(false);
+  };
+
+  const handleDeleteMeeting = async (e, meetingId, meetingName) => {
+    // Stop the click from navigating to the meeting page
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (window.confirm(`Are you sure you want to delete the meeting "${meetingName}"?`)) {
+      try {
+        const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete meeting');
+        }
+
+        // Update the UI by filtering out the deleted meeting
+        setMeetings(meetings.filter(m => m._id !== meetingId));
+      } catch (error) {
+        console.error("Error deleting meeting:", error);
+        alert("Failed to delete meeting.");
+      }
+    }
   };
 
   return (
     <div className="home-page-wrapper">
       <div className="taskbar">
         <div className="taskbar-left">
-          <Link to="/home" className="taskbar-icon" title="Home">
-            <i className="bi-house"></i>
-          </Link>
+          {/* The home link is already on the home page, so it's not strictly necessary */}
+          <span className="taskbar-icon" title="Home"><i className="bi-house"></i></span>
         </div>
         <div className="taskbar-right">
           <Link to="/profile" className="taskbar-icon" title="Profile">
@@ -123,12 +141,17 @@ const HomePage = () => {
       </div>
 
       <div className="grid-container">
-        {meetings.map((meeting, index) => (
-          <Link to={meeting.link} key={index} className="box-link">
+        {meetings.map((meeting) => (
+          <Link to={`/meeting/${meeting.meetingId}`} key={meeting._id} className="box-link">
             <div className="box">
               <div className="meeting-name">{meeting.name}</div>
               <div className="meeting-description">{meeting.description}</div>
               <div className="meeting-datetime">{meeting.datetime}</div>
+              {(userRole === 'admin' || userRole === 'chairman') && (
+                <button className="delete-meeting-btn" onClick={(e) => handleDeleteMeeting(e, meeting._id, meeting.name)}>
+                  <i className="bi-trash"></i>
+                </button>
+              )}
             </div>
           </Link>
         ))}

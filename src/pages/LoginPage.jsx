@@ -2,50 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import '../css/login_style.css'; // Assuming styles are compatible
 
-const USERS_STORAGE_KEY = 'ronr-users';
-
 /**
  * A React component for the login page.
- * It handles user authentication and initializes default users if none exist.
+ * It handles user authentication against the backend.
  */
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
-    // Initialize default users on first load if they don't exist
-    useEffect(() => {
-        if (!localStorage.getItem(USERS_STORAGE_KEY)) {
-            const defaultUsers = {
-                'admin@email.com': { password: 'password', role: 'admin' },
-                'chairman@email.com': { password: 'password', role: 'chairman' },
-                'member@email.com': { password: 'password', role: 'member' }
-            };
-            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(defaultUsers));
-        }
-    }, []);
-
     const isFormValid = email.trim() !== '' && password.trim() !== '';
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isFormValid) return;
 
-        const users = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY)) || {};
-        const user = users[email];
+        try {
+            const response = await fetch('http://localhost:5002/api/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Login failed.');
+            }
 
-        if (user && user.password === password) {
             // --- Login Success ---
+            localStorage.setItem('token', data.token);
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('currentUserEmail', email);
-            localStorage.setItem('currentUserRole', user.role);
+            localStorage.setItem('currentUserRole', data.role);
+            localStorage.setItem('currentUserName', data.name);
             
             alert('Login successful!');
             navigate('/home'); // Redirect to the home page
-        } else {
-            // --- Login Failure ---
-            alert('Invalid email or password. Please try again.');
-            setPassword(''); // Clear password field
+        } catch (error) {
+            alert(error.message);
         }
     };
 
