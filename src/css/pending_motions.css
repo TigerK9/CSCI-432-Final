@@ -1,0 +1,171 @@
+.pending-motions-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* Increased to appear above other elements */
+}
+
+.pending-motions-modal {
+    background: white;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 1000px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.pending-motions-header {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pending-motions-header h2 {
+    margin: 0;
+    color: #333;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.close-button:hover {
+    color: #333;
+}
+
+.pending-motions-content {
+    display: flex;
+    height: calc(100% - 60px);
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.pending-motions-list {
+    width: 300px;
+    border-right: 1px solid #eee;
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+
+.pending-motion-item {
+    padding: 0.75rem;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pending-motion-item:hover {
+    background-color: #f5f5f5;
+}
+
+.pending-motion-item.selected {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+}
+
+.motion-name {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.motion-creator {
+    display: block;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.motion-details {
+    flex: 1;
+    padding: 0 1rem;
+    overflow-y: auto;
+}
+
+.motion-description {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.review-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.approve-button, .deny-button {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.approve-button {
+    background-color: #4caf50;
+    color: white;
+}
+
+.approve-button:hover {
+    background-color: #43a047;
+}
+
+.deny-button {
+    background-color: #f44336;
+    color: white;
+}
+
+.deny-button:hover {
+    background-color: #e53935;
+}
+
+.no-pending-motions {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+}
+
+/* Additional styles for the chairman's interface */
+.chairman-btn {
+    background-color: #8D9D90 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.chairman-btn:hover {
+    background-color: #667b6a !important;
+}
+
+.pending-count {
+    background-color: #f44336;
+    color: white;
+    padding: 0.15rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+/* Add space between motion queue buttons */
+.sidebar-footer button + button {
+    margin-top: 0.5rem;
+}

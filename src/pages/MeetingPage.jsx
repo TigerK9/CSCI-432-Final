@@ -1,107 +1,190 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import '../css/meeting_style.css'; // Your specific CSS file
-
-const DraggableList = ({ items, onReorder, onRemove, renderItem, dataKeyPrefix }) => {
-    const [draggedIndex, setDraggedIndex] = useState(null);
-    const [overIndex, setOverIndex] = useState(null);
-
-    const handleDragStart = (e, index) => {
-        // Necessary for Firefox to allow dragging
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', e.target);
-
-        // Use a timeout to apply the 'dragging' class after the browser has created the drag image
-        setTimeout(() => setDraggedIndex(index), 0);
-    };
-
-    const handleDragEnd = (e) => {
-        setDraggedIndex(null);
-        setOverIndex(null);
-    };
-
-    const handleDragOver = (e, index) => {
-        e.preventDefault();
-        if (index !== overIndex) {
-            setOverIndex(index);
-        }
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        if (draggedIndex === null || overIndex === null || draggedIndex === overIndex) {
-            setDraggedIndex(null);
-            setOverIndex(null);
-            return;
-        }
-
-        const reorderedItems = [...items];
-        const [draggedItem] = reorderedItems.splice(draggedIndex, 1);
-        reorderedItems.splice(overIndex, 0, draggedItem);
-        onReorder(reorderedItems);
-        setDraggedIndex(null);
-        setOverIndex(null);
-    };
-
-    return (
-        <div onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
-            {items.map((item, index) => {
-                let transform = 'translateY(0)';
-                if (draggedIndex !== null && overIndex !== null) {
-                    if (draggedIndex < overIndex && index > draggedIndex && index <= overIndex) {
-                        transform = 'translateY(-100%)'; // Move up
-                    } else if (draggedIndex > overIndex && index < draggedIndex && index >= overIndex) {
-                        transform = 'translateY(100%)'; // Move down
-                    }
-                }
-
-                return (
-                    <div key={index}
-                         className={`agenda-item-edit ${draggedIndex === index ? 'dragging' : ''}`}
-                         style={{ transform }}
-                         draggable
-                         onDragStart={(e) => handleDragStart(e, index)}
-                         onDragEnd={handleDragEnd}
-                         onDragOver={(e) => handleDragOver(e, index)}
-                         data-key={`${dataKeyPrefix}-${index}`}>
-                        {renderItem(item, index)}
-                        <button className="remove-agenda-item-btn" onClick={() => onRemove(index)}>&times;</button>
-                    </div>
-                );
-            })}
-        </div>
-    );
-};
+import '../css/meeting_style.css';
+import '../css/member_view.css';
+import '../css/pending_motions.css';
+import PendingMotionsReview from '../components/PendingMotionsReview';
+import VotingResults from '../components/VotingResults';
+import DraggableList from '../components/DraggableList';
+import MemberView from '../components/MemberView';
+import Taskbar from '../components/Taskbar';
+import AgendaSidebar from '../components/AgendaSidebar';
+import MotionQueueSidebar from '../components/MotionQueueSidebar';
+import CenterContent from '../components/CenterContent';
 
 const MeetingPage = () => {
     const { meetingId } = useParams();
     const navigate = useNavigate();
-    const meetingStorageKey = `ronr-meetingData-${meetingId}`;
 
     const [meetingData, setMeetingData] = useState(null);
     const [isAgendaEditing, setIsAgendaEditing] = useState(false);
     const [isMotionQueueEditing, setIsMotionQueueEditing] = useState(false);
+    const [showPendingMotions, setShowPendingMotions] = useState(false);
     const [newAgendaItem, setNewAgendaItem] = useState('');
     const [newMotion, setNewMotion] = useState({ name: '', description: '', creator: '' });
-
+    const [proposedMotion, setProposedMotion] = useState({ 
+        name: '', 
+        description: '', 
+        status: 'pending'
+    });
+    const [isSubmittingMotion, setIsSubmittingMotion] = useState(false);
+    const [isProposingMotion, setIsProposingMotion] = useState(false);
+    const [votingMotion, setVotingMotion] = useState(null);
+    const [timeLeft, setTimeLeft] = useState(null);
+    const [hasVoted, setHasVoted] = useState(false);
+    const [selectedVote, setSelectedVote] = useState(null);
+    const [showVotingResults, setShowVotingResults] = useState(false);
+    const [justVotedInMotionId, setJustVotedInMotionId] = useState(null);
+    const [isCompletingVote, setIsCompletingVote] = useState(false);
+    const [votingResults, setVotingResults] = useState(null);
+    
     const userRole = localStorage.getItem('currentUserRole');
+    const userId = localStorage.getItem('currentUserId');
+    const isChairman = userRole === 'chairman' || userRole === 'admin';
+
+    const fetchMeetingData = async () => {
+        try {
+            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            
+            // Update all state with latest data
+            setMeetingData(data);
+            
+            // Handle pending motions UI
+            if (showPendingMotions && !data.motionQueue.some(m => m.status === 'pending')) {
+                setShowPendingMotions(false);
+            }
+            
+            // Check for active voting motion
+            const votingMotion = data.motionQueue.find(m => m.status === 'voting');
+            if (votingMotion) {
+                setVotingMotion(votingMotion);
+                const now = new Date();
+                const endsAt = new Date(votingMotion.votingEndsAt);
+                const timeRemaining = Math.max(0, endsAt - now);
+                setTimeLeft(timeRemaining);
+
+                // Check localStorage first for the most immediate feedback
+                const storedVote = localStorage.getItem(`voted-${meetingId}-${votingMotion._id}`);
+                if (storedVote) {
+                    // If a vote is stored locally, trust it as the source of truth
+                    // and only update state if it's different, to prevent re-renders.
+                    if (!hasVoted || selectedVote !== storedVote) {
+                        setHasVoted(true);
+                        setSelectedVote(storedVote);
+                    }
+                } else {
+                    // If no local vote, sync with the server state.
+                    const userHasVotedOnServer = votingMotion.voterIds && votingMotion.voterIds.some(voter => voter.userId === userId);
+                    const serverVote = userHasVotedOnServer ? (votingMotion.voterIds.find(voter => voter.userId === userId).vote) : null;
+                    
+                    if (hasVoted !== userHasVotedOnServer || selectedVote !== serverVote) {
+                        setHasVoted(userHasVotedOnServer);
+                        setSelectedVote(serverVote);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch meeting data:", error);
+        }
+    };
 
     useEffect(() => {
-        const fetchMeetingData = async () => {
-            try {
-                const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                setMeetingData(data);
-            } catch (error) {
-                console.error("Failed to fetch meeting data:", error);
-                // Optionally, handle the error, e.g., navigate to an error page
-            }
-        };
+        // Reset selectedVote when a new voting session starts
+        if (!votingMotion) {
+            setHasVoted(false);
+            setSelectedVote(null);
+        }
+    }, [votingMotion]);
+
+    // Setup data fetching and polling
+    useEffect(() => {        
         fetchMeetingData();
-    }, [meetingId]);
+        const pollInterval = setInterval(fetchMeetingData, 3000); // Poll every 3 seconds
+
+        // Cleanup on unmount or when dependencies change
+        return () => {
+            if (pollInterval) clearInterval(pollInterval);
+        };
+    }, [meetingId, votingMotion, timeLeft]); // Reset polling when time changes too
+
+    const handleVotingComplete = async (motion) => {
+        if (!motion || !meetingData || isCompletingVote) return;
+
+        // Check the latest status from meetingData
+        const currentMotionInQueue = meetingData.motionQueue.find(m => m._id === motion._id);
+        if (!currentMotionInQueue || currentMotionInQueue.status !== 'voting') return;
+
+        try {
+            setIsCompletingVote(true);
+            const motionIndex = meetingData.motionQueue.findIndex(m => m._id === currentMotionInQueue._id);
+            if (motionIndex === -1) return;
+
+            // Immediately update local state to prevent further votes
+            setTimeLeft(0);
+            setHasVoted(true);
+
+            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}/complete-voting/${motionIndex}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+            
+            // Show voting results
+            setVotingResults(data.motion);
+            setShowVotingResults(true);
+            
+            // Reset states after showing results
+            setTimeout(() => {
+                setShowVotingResults(false);
+                // Clean up localStorage for the completed motion
+                localStorage.removeItem(`voted-${meetingId}-${motion._id}`);
+
+                setVotingResults(null);
+                setVotingMotion(null);
+                setTimeLeft(null);
+                fetchMeetingData(); // Update with latest data
+            }, 5000);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to complete voting');
+            }
+
+            // Immediate fetch to update other parts of the UI
+            fetchMeetingData();
+        } catch (error) {
+            console.error('Error completing voting:', error);
+            // Still try to update the UI even if completion fails
+            setVotingMotion(null);
+            setTimeLeft(null);
+            fetchMeetingData();
+        } finally {
+            setIsCompletingVote(false);
+        }
+    };
+
+    useEffect(() => {
+        if (timeLeft === null || !votingMotion) return;
+
+        if (timeLeft <= 0) {
+            if (votingMotion.status === 'voting') {
+                handleVotingComplete(votingMotion);
+            }
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setTimeLeft(prev => (prev !== null ? Math.max(0, prev - 1000) : null));
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeLeft, votingMotion, meetingData, meetingId]);
 
     const saveData = async (newData) => {
         setMeetingData(newData);
@@ -126,6 +209,52 @@ const MeetingPage = () => {
         }
     };
 
+    const handleMotionReview = async (motionIndex, action) => {
+        try {
+            const response = await fetch(
+                `http://localhost:5002/api/meetings/${meetingId}/motions/${motionIndex}/review`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ action })
+                }
+            );
+
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+                console.error('Server response while reviewing motion:', { status: response.status, statusText: response.statusText, data });
+                throw new Error(data && data.message ? data.message : 'Failed to review motion');
+            }
+
+            if (action === 'approve') {
+                // Optimistically update the UI for approved motions
+                const updatedQueue = [...meetingData.motionQueue];
+                updatedQueue[motionIndex].status = 'proposed';
+                setMeetingData(prev => ({
+                    ...prev,
+                    motionQueue: updatedQueue
+                }));
+            } else {
+                // For denied motions, remove them from the queue immediately
+                const updatedQueue = [...meetingData.motionQueue];
+                updatedQueue.splice(motionIndex, 1);
+                setMeetingData(prev => ({
+                    ...prev,
+                    motionQueue: updatedQueue
+                }));
+            }
+
+            // Fetch latest data to ensure sync
+            fetchMeetingData();
+        } catch (error) {
+            console.error('Error reviewing motion:', error);
+            alert('Failed to review motion. Please try again.');
+        }
+    };
+
     const handleAddAgendaItem = () => {
         if (newAgendaItem.trim()) {
             const newData = { ...meetingData, agenda: [...meetingData.agenda, newAgendaItem.trim()] };
@@ -142,7 +271,122 @@ const MeetingPage = () => {
         }
     };
 
+    const handleProposeMotion = async () => {
+        if (!proposedMotion.name.trim()) return;
 
+        try {
+            const token = localStorage.getItem('token');
+            const currentUserName = localStorage.getItem('currentUserName');
+            
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            // Send to server first
+            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}/propose-motion`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    ...proposedMotion,
+                    creator: currentUserName
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                console.error('Server response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data
+                });
+                // Revert the optimistic update
+                fetchMeetingData();
+                throw new Error(data.message || `Failed to propose motion: ${response.status} ${response.statusText}`);
+            }
+
+            // Success - fetch latest data to ensure sync
+            await fetchMeetingData();
+
+            // Reset the form and close the propose UI so user sees the previous screen
+            setProposedMotion({ name: '', description: '', status: 'pending' });
+            setIsProposingMotion(false);
+        } catch (error) {
+            console.error('Error proposing motion:', error);
+            alert('Failed to propose motion. Please make sure you are logged in and the meeting exists.');
+        }
+    };
+
+    const handleStartVote = async (motionIndex) => {
+        try {
+            await fetch(`http://localhost:5002/api/meetings/${meetingId}/start-vote/${motionIndex}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+        } catch (error) {
+            console.error('Error starting vote:', error);
+        }
+    };
+
+    const handleVote = async (vote) => {
+        if (!votingMotion || hasVoted) return;
+
+        // Store vote in localStorage for persistence FIRST, then update state
+        localStorage.setItem(`voted-${meetingId}-${votingMotion._id}`, vote);
+        setHasVoted(true);
+        setSelectedVote(vote);
+
+        try {
+            // Submit vote to server
+            const motionIndex = meetingData.motionQueue.findIndex(m => m._id === votingMotion._id);
+            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}/vote/${motionIndex}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ vote })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                // On failure, revert the optimistic UI update and clear localStorage
+                localStorage.removeItem(`voted-${meetingId}-${votingMotion._id}`);
+                setHasVoted(false); // Revert optimistic update
+                setSelectedVote(null);
+                alert(data.message || 'Failed to submit vote');
+                return;
+            }
+
+            // Show results if voting is complete
+            if (data.votingComplete && data.motion) {
+                setVotingResults(data.motion);
+                setShowVotingResults(true);
+                
+                setTimeout(() => {
+                    setShowVotingResults(false);
+                    setVotingResults(null);
+                    fetchMeetingData();
+                }, 5000);
+            }
+
+            // Update UI with latest data
+            fetchMeetingData();
+        } catch (error) {
+            // On error, revert the optimistic UI update and clear localStorage
+            localStorage.removeItem(`voted-${meetingId}-${votingMotion._id}`);
+            setHasVoted(false); // Revert optimistic update
+            setSelectedVote(null);
+            console.error('Error submitting vote:', error);
+            alert('Failed to submit vote. Please try again.');
+        }
+    };
 
     if (!meetingData) {
         return <div>Loading...</div>;
@@ -150,148 +394,89 @@ const MeetingPage = () => {
 
     const currentMotion = meetingData.motionQueue[meetingData.currentMotionIndex];
 
+    // If user is a regular member, show the simplified view
+    if (userRole === 'member') {
+        return (
+            <div id="meeting-page-layout">
+                {showVotingResults && votingResults && (
+                    <VotingResults 
+                        motion={votingResults} 
+                        onClose={() => setShowVotingResults(false)}
+                    />
+                )}
+                <Taskbar />
+                <MemberView 
+                    currentMotion={currentMotion}
+                    votingMotion={votingMotion}
+                    timeLeft={timeLeft}
+                    isProposingMotion={isProposingMotion}
+                    proposedMotion={proposedMotion}
+                    handleVote={handleVote}
+                    handleProposeMotion={handleProposeMotion}
+                    setIsProposingMotion={setIsProposingMotion}
+                    setProposedMotion={setProposedMotion}
+                    hasVoted={hasVoted}
+                    selectedVote={selectedVote}
+                    setSelectedVote={setSelectedVote}
+                />
+            </div>
+        );
+    }
+
+    // Chairman/Admin view
     return (
-        // This wrapper provides a unique, high-specificity root for our CSS to target.
         <div id="meeting-page-layout">
-            <div className="taskbar">
-                <div className="taskbar-left">
-                    <Link to="/home" className="taskbar-icon" title="Home">
-                        <i className="bi-house"></i>
-                    </Link>
-                </div>
-                <div className="taskbar-right">
-                    <Link to="/profile" className="taskbar-icon" title="Profile">
-                        <i className="bi-person"></i>
-                    </Link>
-                    <a href="#" onClick={() => {
-                        localStorage.clear();
-                        navigate('/login');
-                    }} className="taskbar-icon" title="Logout">
-                        <i className="bi-box-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-
-            {/* This container defines the horizontal three-column layout and is vertically offset by CSS */}
+            {showVotingResults && votingResults && (
+                <VotingResults 
+                    motion={votingResults} 
+                    onClose={() => setShowVotingResults(false)}
+                />
+            )}
+            {showPendingMotions && (
+                <PendingMotionsReview
+                    motions={meetingData.motionQueue.map((motion, index) => ({
+                        ...motion,
+                        index
+                    }))}
+                    onReview={handleMotionReview}
+                    onClose={() => setShowPendingMotions(false)}
+                />
+            )}
+            <Taskbar />
             <div className="main-container">
-                {/* Agenda Sidebar */}
-                <div className="sidebar sidebar-left">
-                    <h2>Agenda</h2>
-                    <div id="agenda-container">
-                        {isAgendaEditing ? (
-                            <>
-                                <DraggableList
-                                    items={meetingData.agenda}
-                                    onReorder={(reordered) => saveData({ ...meetingData, agenda: reordered })}
-                                    onRemove={(index) => {
-                                        const newAgenda = meetingData.agenda.filter((_, i) => i !== index);
-                                        const newIndex = meetingData.currentAgendaIndex >= newAgenda.length 
-                                            ? Math.max(0, newAgenda.length - 1) 
-                                            : meetingData.currentAgendaIndex;
-                                        saveData({ ...meetingData, agenda: newAgenda, currentAgendaIndex: newIndex });
-                                    }}
-                                    renderItem={(item, index) => <span>{`${index + 1}. ${item}`}</span>}
-                                    dataKeyPrefix="agenda"
-                                />
-                                <input type="text" placeholder="New agenda item" value={newAgendaItem} onChange={(e) => setNewAgendaItem(e.target.value)} style={{ width: 'calc(100% - 10px)', marginTop: '10px' }} />
-                                <button className="sidebar-btn" onClick={handleAddAgendaItem}>Add Item</button>
-                                <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => setIsAgendaEditing(false)}>Done Editing</button>
-                            </>
-                        ) : (
-                            <>
-                                {meetingData.agenda.map((item, index) => (
-                                    <div key={index} className={`agenda-item ${index === meetingData.currentAgendaIndex ? 'active' : ''}`}>
-                                        {`${index + 1}. ${item}`}
-                                    </div>
-                                ))}
-                            </>
-                        )}
-                    </div>
-                    <div className="sidebar-footer">
-                        {!isAgendaEditing && (userRole === 'admin' || userRole === 'chairman') && (
-                            <>
-                                <div className="nav-buttons">
-                                    <button className="sidebar-btn" onClick={() => handleAgendaNav(-1)}>Previous</button>
-                                    <button className="sidebar-btn" onClick={() => handleAgendaNav(1)}>Next</button>
-                                </div>
-                                <button id="edit-agenda-btn" className="sidebar-btn" onClick={() => setIsAgendaEditing(true)}>Edit Agenda</button>
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                {/* Center Content */}
-                <div className="center-content">
-                    <div className="current-motion-box">
-                        <h3 id="motion-name">{currentMotion ? currentMotion.name : 'No Active Motion'}</h3>
-                        <p id="motion-description">{currentMotion ? currentMotion.description : 'The motion queue is empty.'}</p>
-                        {currentMotion && <p id="motion-creator" className="motion-creator-text">{`(Moved by: ${currentMotion.creator})`}</p>}
-                    </div>
-                </div>
-
-                {/* Motion Queue Sidebar */}
-                <div className="sidebar sidebar-right">
-                    <h2>Motion Queue</h2>
-                    <div id="motion-queue-container">
-                        {isMotionQueueEditing ? (
-                            <>
-                                <DraggableList
-                                    items={meetingData.motionQueue}
-                                    onReorder={(reordered) => saveData({ ...meetingData, motionQueue: reordered })}
-                                    onRemove={(index) => {
-                                        const newQueue = meetingData.motionQueue.filter((_, i) => i !== index);
-                                        const newIndex = meetingData.currentMotionIndex >= newQueue.length
-                                            ? Math.max(0, newQueue.length - 1)
-                                            : meetingData.currentMotionIndex;
-                                        saveData({ ...meetingData, motionQueue: newQueue, currentMotionIndex: newIndex });
-                                    }}
-                                    renderItem={(item) => <span>{item.name}</span>}
-                                    dataKeyPrefix="motion"
-                                />
-                                <div style={{ marginTop: '15px' }}>
-                                    <input type="text" placeholder="Motion Name" value={newMotion.name} onChange={(e) => setNewMotion({ ...newMotion, name: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }} />
-                                    <textarea placeholder="Description" rows="2" value={newMotion.description} onChange={(e) => setNewMotion({ ...newMotion, description: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }}></textarea>
-                                    <input type="text" placeholder="Moved by" value={newMotion.creator} onChange={(e) => setNewMotion({ ...newMotion, creator: e.target.value })} style={{ width: 'calc(100% - 10px)', marginBottom: '5px' }} />
-                                </div>
-                                <button className="sidebar-btn" onClick={handleAddMotionItem}>Add Motion</button>
-                                <button className="sidebar-btn" style={{ backgroundColor: '#2196F3' }} onClick={() => setIsMotionQueueEditing(false)}>Done Editing</button>
-                            </>
-                        ) : (
-                            <>
-                                {meetingData.motionQueue.map((motion, index) => (
-                                    <div key={index} className={`motion-item ${index === meetingData.currentMotionIndex ? 'active' : ''}`}>
-                                        {`${index + 1}. ${motion.name}`}
-                                    </div>
-                                ))}
-                            </>
-                        )}
-                    </div>
-                    <div className="sidebar-footer">
-                        {!isMotionQueueEditing && (userRole === 'admin' || userRole === 'chairman') && (
-                            <>
-                                {meetingData.motionQueue.length > 1 && (
-                                    <div className="nav-buttons">
-                                        <button className="sidebar-btn" onClick={() => handleMotionNav(-1)}>Previous</button>
-                                        <button className="sidebar-btn" onClick={() => handleMotionNav(1)}>Next</button>
-                                    </div>
-                                )}
-                                <button id="edit-motion-queue-btn" className="sidebar-btn" onClick={() => setIsMotionQueueEditing(true)}>Edit Motion Queue</button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div className="footer">
-                <button className="vote-button aye">AYE</button>
-                <button className="vote-button no">NO</button>
-                <button className="vote-button hand">
-                    <i className="bi bi-hand-raised raise-hand-icon"></i>
-                    Raise Hand
-                </button>
+                <AgendaSidebar
+                    meetingData={meetingData}
+                    isAgendaEditing={isAgendaEditing}
+                    setIsAgendaEditing={setIsAgendaEditing}
+                    newAgendaItem={newAgendaItem}
+                    setNewAgendaItem={setNewAgendaItem}
+                    handleAddAgendaItem={handleAddAgendaItem}
+                    handleAgendaNav={handleAgendaNav}
+                    saveData={saveData}
+                />
+                <CenterContent
+                    currentMotion={currentMotion}
+                    timeLeft={timeLeft}
+                    handleStartVote={handleStartVote}
+                    meetingData={meetingData}
+                />
+                <MotionQueueSidebar
+                    meetingData={meetingData}
+                    isMotionQueueEditing={isMotionQueueEditing}
+                    setIsMotionQueueEditing={setIsMotionQueueEditing}
+                    newMotion={newMotion}
+                    setNewMotion={setNewMotion}
+                    handleAddMotionItem={handleAddMotionItem}
+                    handleMotionNav={handleMotionNav}
+                    saveData={saveData}
+                    isChairman={isChairman}
+                    showPendingMotions={showPendingMotions}
+                    setShowPendingMotions={setShowPendingMotions}
+                />
             </div>
         </div>
     );
 };
 
+// Export the component
 export default MeetingPage;
