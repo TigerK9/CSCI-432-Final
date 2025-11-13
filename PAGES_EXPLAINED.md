@@ -1,5 +1,7 @@
 # Meeting Platform Page Details and To-Do List
 
+**Last Updated: October 30, 2025**
+
 ## 1. LoginPage (src/pages/LoginPage.jsx)
 
 **Description:** The primary page for user authentication and entry into the website.

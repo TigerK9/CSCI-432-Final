@@ -40,7 +40,16 @@ const meetingSchema = new mongoose.Schema({
     motionQueue: [{
         name: String,
         description: String,
-        creator: String
+        creator: String,
+        // Include 'proposed' to be tolerant of legacy data; canonical value is 'pending'
+        status: { type: String, enum: ['pending', 'proposed', 'approved', 'denied', 'active', 'voting', 'completed'], default: 'pending' },
+        proposedBy: String,
+        votes: {
+            aye: { type: Number, default: 0 },
+            no: { type: Number, default: 0 }
+        },
+        voterIds: [String], // Array of user IDs who have voted
+        votingEndsAt: Date
     }]
 }, { collection: 'meetings' }); // Explicitly set collection name
 
@@ -220,6 +229,212 @@ app.get('/api/meetings/:meetingId', async (req, res) => {
     }
 });
 
+// Propose a new motion
+app.post('/api/meetings/:meetingId/propose-motion', authMiddleware, async (req, res) => {
+    try {
+        const { name, description, creator } = req.body;
+        console.log('[POST] Propose motion request:', { meetingId: req.params.meetingId, body: req.body });
+        
+        if (!name || !description) {
+            return res.status(400).json({ message: 'Name and description are required' });
+        }
+
+        const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
+        if (!meeting) {
+            console.error('[POST] Meeting not found:', req.params.meetingId);
+            return res.status(404).json({ message: 'Meeting not found', meetingId: req.params.meetingId });
+        }
+
+            // Create the new motion with the correct status enum value
+            const newMotion = {
+                name,
+                description,
+                creator: creator || req.user.name || 'Unknown',
+                status: 'pending', // This must match the enum in the schema: ['pending', 'approved', 'denied', 'active', 'voting', 'completed']
+                proposedBy: req.user.id,
+                proposedAt: new Date(),
+                votes: { aye: 0, no: 0 }
+            };
+
+            console.log('[POST] Creating new motion:', newMotion);
+
+        meeting.motionQueue.push(newMotion);
+        await meeting.save();
+        
+        console.log('[POST] Successfully added new motion:', newMotion);
+        res.status(201).json(newMotion);
+    } catch (error) {
+        console.error('[POST] Error proposing motion:', error);
+        res.status(500).json({ 
+            message: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+});
+
+// Handle motion approval/denial
+app.post('/api/meetings/:meetingId/motions/:motionIndex/review', authMiddleware, async (req, res) => {
+    try {
+        const { action } = req.body; // 'approve' or 'deny'
+        if (!['approve', 'deny'].includes(action)) {
+            return res.status(400).json({ message: 'Invalid action' });
+        }
+
+        // Check if user is chairman/admin
+        if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can review motions' });
+        }
+
+        const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        const motionIndex = parseInt(req.params.motionIndex);
+        const motion = meeting.motionQueue[motionIndex];
+
+        if (!motion || motion.status !== 'pending') {
+            return res.status(400).json({ message: 'Motion is not pending review' });
+        }
+
+    if (action === 'approve') {
+        // When chairman approves, mark as 'proposed' for the motion queue
+        motion.status = 'proposed';
+        motion.reviewedBy = req.user.name;
+        motion.reviewedAt = new Date();
+        await meeting.save();
+        res.json(motion);
+    } else {
+        // When chairman denies, remove the motion from the queue entirely
+        meeting.motionQueue.splice(motionIndex, 1);
+        await meeting.save();
+        res.json({ message: 'Motion denied and removed' });
+    }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Start voting on a motion
+app.post('/api/meetings/:meetingId/start-vote/:motionIndex', authMiddleware, async (req, res) => {
+    try {
+        const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        const motionIndex = parseInt(req.params.motionIndex);
+        if (motionIndex < 0 || motionIndex >= meeting.motionQueue.length) {
+            return res.status(400).json({ message: 'Invalid motion index' });
+        }
+
+        // Set voting period (10 seconds for development)
+        const votingEndsAt = new Date(Date.now() + 10000);
+        meeting.motionQueue[motionIndex].status = 'voting';
+        meeting.motionQueue[motionIndex].votingEndsAt = votingEndsAt;
+        meeting.motionQueue[motionIndex].votes = { aye: 0, no: 0 };
+        meeting.motionQueue[motionIndex].result = null; // Reset result
+
+        await meeting.save();
+        res.json(meeting.motionQueue[motionIndex]);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Helper function to determine motion result
+const determineMotionResult = (votes) => {
+    const totalVotes = votes.aye + votes.no;
+    if (totalVotes === 0) return 'no-votes';
+    if (votes.aye === votes.no) return 'tie';
+    return votes.aye > votes.no ? 'approved' : 'failed';
+};
+
+// Complete voting on a motion
+app.post('/api/meetings/:meetingId/complete-voting/:motionIndex', async (req, res) => {
+    try {
+        const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        const motionIndex = parseInt(req.params.motionIndex);
+        const motion = meeting.motionQueue[motionIndex];
+
+        if (!motion || motion.status !== 'voting') {
+            return res.status(400).json({ message: 'Motion is not currently in voting state' });
+        }
+
+        // Mark the motion as completed and determine result
+        motion.status = 'completed';
+        motion.result = determineMotionResult(motion.votes);
+        await meeting.save();
+
+        res.json({
+            motion,
+            message: 'Voting completed successfully',
+            result: motion.result,
+            votes: motion.votes
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Submit a vote
+app.post('/api/meetings/:meetingId/vote/:motionIndex', authMiddleware, async (req, res) => {
+    try {
+        const { vote } = req.body; // 'aye' or 'no'
+        const userId = req.user.id;
+
+        const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
+        
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        const motionIndex = parseInt(req.params.motionIndex);
+        const motion = meeting.motionQueue[motionIndex];
+
+        if (!motion || motion.status !== 'voting') {
+            return res.status(400).json({ message: 'Motion is not currently accepting votes' });
+        }
+
+        if (new Date() > new Date(motion.votingEndsAt)) {
+            motion.status = 'completed';
+            motion.result = determineMotionResult(motion.votes);
+            await meeting.save();
+            return res.status(400).json({ 
+                message: 'Voting period has ended',
+                result: motion.result,
+                votes: motion.votes
+            });
+        }
+
+        // Check if user has already voted
+        if (motion.voterIds && motion.voterIds.includes(userId)) {
+            return res.status(400).json({ message: 'You have already voted on this motion' });
+        }
+
+        // Initialize voterIds array if it doesn't exist
+        if (!motion.voterIds) {
+            motion.voterIds = [];
+        }
+
+        // Add user to voters list and increment vote count
+        motion.voterIds.push(userId);
+        motion.votes[vote]++;
+        await meeting.save();
+        
+        res.json({ 
+            votes: motion.votes,
+            hasVoted: true,
+            message: 'Vote recorded successfully'
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 
 const PORT = process.env.PORT || 5002;

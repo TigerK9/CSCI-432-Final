@@ -182,6 +182,101 @@
     background-color: #f9f9f9;
     border-radius: 4px;
 }
+
+.motion-item.pending {
+    border-left: 4px solid #ffd700;
+    padding: 12px;
+}
+
+.motion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.motion-title {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.motion-status {
+    font-size: 0.9em;
+    color: #856404;
+    background-color: #fff3cd;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.motion-details {
+    margin: 8px 0;
+}
+
+.motion-proposer {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.motion-description {
+    font-size: 0.95em;
+    color: #333;
+}
+
+.motion-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.accept-btn, .deny-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.accept-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.deny-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.accept-btn:hover {
+    background-color: #45a049;
+}
+
+.deny-btn:hover {
+    background-color: #da190b;
+}
+
+.status-badge {
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+}
+
+.status-badge.approved {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.denied {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.voting {
+    background-color: #cce5ff;
+    color: #004085;
+}
 .agenda-item.active {
     background-color: #d9edf7; 
     border-left: 4px solid #2196F3;
@@ -256,6 +351,16 @@
     font-size: 1.5em;
     vertical-align: middle;
     margin-right: 5px;
+}
+.vote-button.selected-vote {
+    box-shadow: 0 6px 24px rgba(33,150,243,0.25);
+    border: 3px solid #2196F3;
+    font-weight: bold;
+    background-color: #e3f2fd;
+    transform: scale(1.22) translateY(-12px) !important;
+    z-index: 2;
+    position: relative;
+    transition: transform 0.18s cubic-bezier(.4,2,.6,1), box-shadow 0.18s, background 0.18s;
 }
 .nav-buttons {
     display: flex;
