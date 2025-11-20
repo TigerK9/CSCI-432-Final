@@ -229,26 +229,13 @@ const MeetingPage = () => {
                 throw new Error(data && data.message ? data.message : 'Failed to review motion');
             }
 
-            if (action === 'approve') {
-                // Optimistically update the UI for approved motions
-                const updatedQueue = [...meetingData.motionQueue];
-                updatedQueue[motionIndex].status = 'proposed';
-                setMeetingData(prev => ({
-                    ...prev,
-                    motionQueue: updatedQueue
-                }));
+            // If backend returns updated meeting, use it for instant UI update
+            if (data && data.meeting) {
+                setMeetingData(data.meeting);
             } else {
-                // For denied motions, remove them from the queue immediately
-                const updatedQueue = [...meetingData.motionQueue];
-                updatedQueue.splice(motionIndex, 1);
-                setMeetingData(prev => ({
-                    ...prev,
-                    motionQueue: updatedQueue
-                }));
+                // Fallback: fetch latest data
+                await fetchMeetingData();
             }
-
-            // Fetch latest data to ensure sync
-            fetchMeetingData();
         } catch (error) {
             console.error('Error reviewing motion:', error);
             alert('Failed to review motion. Please try again.');
@@ -434,11 +421,19 @@ const MeetingPage = () => {
             )}
             {showPendingMotions && (
                 <PendingMotionsReview
-                    motions={meetingData.motionQueue.map((motion, index) => ({
-                        ...motion,
-                        index
-                    }))}
-                    onReview={handleMotionReview}
+                    motions={meetingData.motionQueue
+                        .map((motion, index) => ({ ...motion, index }))
+                        .filter(motion => motion.status === 'pending')}
+                    onReview={(pendingIndex, action) => {
+                        // Find the actual index in the full motionQueue
+                        const pendingMotions = meetingData.motionQueue
+                            .map((motion, index) => ({ ...motion, index }))
+                            .filter(motion => motion.status === 'pending');
+                        const actualMotion = pendingMotions[pendingIndex];
+                        if (actualMotion) {
+                            handleMotionReview(actualMotion.index, action);
+                        }
+                    }}
                     onClose={() => setShowPendingMotions(false)}
                 />
             )}
@@ -461,7 +456,11 @@ const MeetingPage = () => {
                     meetingData={meetingData}
                 />
                 <MotionQueueSidebar
+                    // Pass the full meetingData so save/update operations don't accidentally
+                    // remove pending motions. The sidebar can choose to hide pending
+                    // motions in its UI rendering when `hidePending` is true.
                     meetingData={meetingData}
+                    hidePending={true}
                     isMotionQueueEditing={isMotionQueueEditing}
                     setIsMotionQueueEditing={setIsMotionQueueEditing}
                     newMotion={newMotion}
