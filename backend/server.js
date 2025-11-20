@@ -298,17 +298,42 @@ app.post('/api/meetings/:meetingId/motions/:motionIndex/review', authMiddleware,
         }
 
     if (action === 'approve') {
-        // When chairman approves, mark as 'proposed' for the motion queue
-        motion.status = 'proposed';
-        motion.reviewedBy = req.user.name;
-        motion.reviewedAt = new Date();
+        // When chairman approves, remove the pending motion from its current
+        // position and append it to the end of the motionQueue with status
+        // 'proposed' so approval order is preserved.
+        console.log('[REVIEW] Approving pending motion at index', motionIndex, 'current status:', motion.status);
+
+        // Remove the motion from its current position
+        const removed = meeting.motionQueue.splice(motionIndex, 1)[0];
+
+        // Build the approved motion object preserving existing data but
+        // setting the canonical status and review metadata. This ensures
+        // the approved motion appears at the end of the queue (approval order).
+        const approvedMotion = {
+            name: removed.name,
+            description: removed.description,
+            creator: removed.creator,
+            status: 'proposed',
+            proposedBy: removed.proposedBy || req.user.id,
+            votes: removed.votes || { aye: 0, no: 0 },
+            voterIds: removed.voterIds || [],
+            votingEndsAt: removed.votingEndsAt || null,
+            reviewedBy: req.user.name,
+            reviewedAt: new Date()
+        };
+
+        meeting.motionQueue.push(approvedMotion);
         await meeting.save();
-        res.json(motion);
+        console.log('[REVIEW] Approved motion moved to end of queue:', approvedMotion);
+
+        // Return the full updated meeting object
+        res.json({ meeting });
     } else {
         // When chairman denies, remove the motion from the queue entirely
         meeting.motionQueue.splice(motionIndex, 1);
         await meeting.save();
-        res.json({ message: 'Motion denied and removed' });
+        // Return the full updated meeting object
+        res.json({ meeting });
     }
     } catch (error) {
         res.status(500).json({ message: error.message });

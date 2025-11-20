@@ -1,12 +1,15 @@
 import React from 'react';
 
 const MemberView = ({ currentMotion, votingMotion, timeLeft, isProposingMotion, proposedMotion, handleVote, handleProposeMotion, setIsProposingMotion, setProposedMotion, hasVoted, selectedVote, setSelectedVote }) => {
+    // Don't show motions that are still pending approval by the chairman.
+    const displayMotion = currentMotion && currentMotion.status !== 'pending' ? currentMotion : null;
+
     return (
         <div className="member-view">
             <div className="current-motion-box">
-                <h3>{currentMotion ? currentMotion.name : 'No Active Motion'}</h3>
-                <p>{currentMotion ? currentMotion.description : 'The motion queue is empty.'}</p>
-                {currentMotion && <p className="motion-creator-text">{`(Moved by: ${currentMotion.creator})`}</p>}
+                <h3>{displayMotion ? displayMotion.name : 'No Active Motion'}</h3>
+                <p>{displayMotion ? displayMotion.description : 'The motion queue is empty.'}</p>
+                {displayMotion && <p className="motion-creator-text">{`(Moved by: ${displayMotion.creator})`}</p>}
                 {votingMotion && (
                     <div className="voting-section">
                         <h4>Voting in Progress</h4>

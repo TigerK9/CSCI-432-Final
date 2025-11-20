@@ -3,8 +3,27 @@ import '../css/meeting_style.css';
 
 const PendingMotionsReview = ({ motions, onReview, onClose }) => {
     const [selectedMotion, setSelectedMotion] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const pendingMotions = motions.filter(motion => motion.status === 'pending');
+
+    const handleReview = async (index, action) => {
+        setLoading(true);
+        setError(null);
+        try {
+            // Pass the index within the pending-motions list to the parent.
+            // The parent (`MeetingPage`) expects the pending-list index and will
+            // map it to the actual index in the full motionQueue.
+            await onReview(index, action);
+            setSelectedMotion(null);
+            onClose();
+        } catch (e) {
+            setError('Failed to process motion. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="pending-motions-overlay">
@@ -37,24 +56,21 @@ const PendingMotionsReview = ({ motions, onReview, onClose }) => {
                             <p><strong>Creator:</strong> {pendingMotions[selectedMotion].creator}</p>
                             <p><strong>Description:</strong></p>
                             <p className="motion-description">{pendingMotions[selectedMotion].description}</p>
+                            {error && <div style={{color: 'red', marginBottom: 8}}>{error}</div>}
                             <div className="review-actions">
                                 <button
                                     className="approve-button"
-                                    onClick={() => {
-                                        onReview(pendingMotions[selectedMotion].index, 'approve');
-                                        setSelectedMotion(null);
-                                    }}
+                                    onClick={() => handleReview(selectedMotion, 'approve')}
+                                    disabled={loading}
                                 >
-                                    Approve
+                                    {loading ? 'Approving...' : 'Approve'}
                                 </button>
                                 <button
                                     className="deny-button"
-                                    onClick={() => {
-                                        onReview(pendingMotions[selectedMotion].index, 'deny');
-                                        setSelectedMotion(null);
-                                    }}
+                                    onClick={() => handleReview(selectedMotion, 'deny')}
+                                    disabled={loading}
                                 >
-                                    Deny
+                                    {loading ? 'Denying...' : 'Deny'}
                                 </button>
                             </div>
                         </div>
