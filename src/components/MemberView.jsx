@@ -45,6 +45,11 @@ const MemberView = ({ currentMotion, votingMotion, timeLeft, isProposingMotion, 
                             </button>
                             {hasVoted && <p className="voted-message">Vote recorded</p>}
                         </div>
+                    {displayMotion && ['approved', 'failed', 'tied', 'no-votes', 'denied'].includes(displayMotion.status) && (
+                        <div style={{ margin: '8px 0' }}>
+                            <span className={`status-badge ${displayMotion.status}`}>{displayMotion.status.replace('-', ' ').replace(/(^|\s)\S/g, t => t.toUpperCase())}</span>
+                        </div>
+                    )}
                     </div>
                 )}
             </div>

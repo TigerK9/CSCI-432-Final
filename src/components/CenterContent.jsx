@@ -12,6 +12,12 @@ const CenterContent = ({ currentMotion, timeLeft, handleStartVote, meetingData }
             {displayMotion && (
                 <>
                     <p id="motion-creator" className="motion-creator-text">{`(Moved by: ${displayMotion.creator})`}</p>
+                    {/* Show a result badge when the motion has a final outcome */}
+                    {['approved', 'failed', 'tied', 'no-votes', 'denied'].includes(displayMotion.status) && (
+                        <div style={{ margin: '8px 0' }}>
+                            <span className={`status-badge ${displayMotion.status}`}>{displayMotion.status.replace('-', ' ').replace(/(^|\s)\S/g, t => t.toUpperCase())}</span>
+                        </div>
+                    )}
                     {displayMotion.status === 'proposed' && (
                         <button 
                             className="start-vote-btn"

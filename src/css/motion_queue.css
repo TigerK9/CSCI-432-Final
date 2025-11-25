@@ -1,0 +1,75 @@
+/* Styles specific to the Motion Queue sidebar
+   Edit the CSS variables below to change badge colors for different statuses.
+*/
+
+.motion-queue-sidebar {
+  --badge-font-size: 0.8rem;
+  --badge-padding: 3px 8px;
+  --badge-border-radius: 10px;
+
+  /* Color variables (background / text) */
+  --badge-proposed-bg: #cbcbcb; /* light green */
+  --badge-proposed-color: #000000;
+
+  --badge-approved-bg: #d4edda; /* success */
+  --badge-approved-color: #155724;
+
+  --badge-failed-bg: #f8d7da; /* danger */
+  --badge-failed-color: #721c24;
+
+  --badge-tied-bg: #fff3cd; /* warning */
+  --badge-tied-color: #856404;
+
+  --badge-no-votes-bg: #e2e3e5; /* secondary */
+  --badge-no-votes-color: #6c757d;
+
+  --badge-denied-bg: #f8d7da;
+  --badge-denied-color: #721c24;
+
+  --badge-voting-bg: #cce5ff;
+  --badge-voting-color: #004085;
+}
+
+/* Generic badge base */
+.motion-queue-sidebar .status-badge {
+  font-size: var(--badge-font-size);
+  padding: var(--badge-padding);
+  border-radius: var(--badge-border-radius);
+  margin-left: 8px;
+  display: inline-block;
+}
+
+.motion-queue-sidebar .status-badge.proposed {
+  background-color: var(--badge-proposed-bg);
+  color: var(--badge-proposed-color);
+}
+
+.motion-queue-sidebar .status-badge.approved {
+  background-color: var(--badge-approved-bg);
+  color: var(--badge-approved-color);
+}
+
+.motion-queue-sidebar .status-badge.failed {
+  background-color: var(--badge-failed-bg);
+  color: var(--badge-failed-color);
+}
+
+.motion-queue-sidebar .status-badge.tied {
+  background-color: var(--badge-tied-bg);
+  color: var(--badge-tied-color);
+}
+
+.motion-queue-sidebar .status-badge.no-votes {
+  background-color: var(--badge-no-votes-bg);
+  color: var(--badge-no-votes-color);
+}
+
+.motion-queue-sidebar .status-badge.denied {
+  background-color: var(--badge-denied-bg);
+  color: var(--badge-denied-color);
+}
+
+.motion-queue-sidebar .status-badge.voting {
+  background-color: var(--badge-voting-bg);
+  color: var(--badge-voting-color);
+}

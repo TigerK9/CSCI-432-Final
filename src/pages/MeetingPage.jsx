@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import '../css/meeting_style.css';
 import '../css/member_view.css';
@@ -37,10 +37,12 @@ const MeetingPage = () => {
     const [justVotedInMotionId, setJustVotedInMotionId] = useState(null);
     const [isCompletingVote, setIsCompletingVote] = useState(false);
     const [votingResults, setVotingResults] = useState(null);
+    const [showEndConfirm, setShowEndConfirm] = useState(false);
     
     const userRole = localStorage.getItem('currentUserRole');
     const userId = localStorage.getItem('currentUserId');
     const isChairman = userRole === 'chairman' || userRole === 'admin';
+    const endedRedirectedRef = useRef(false);
 
     const fetchMeetingData = async () => {
         try {
@@ -49,14 +51,20 @@ const MeetingPage = () => {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            
+
             // Update all state with latest data
             setMeetingData(data);
-            
-            // Handle pending motions UI
-            if (showPendingMotions && !data.motionQueue.some(m => m.status === 'pending')) {
-                setShowPendingMotions(false);
+
+            // If the meeting was ended, redirect participants to the minutes page once.
+            if (data && data.ended && !endedRedirectedRef.current) {
+                endedRedirectedRef.current = true;
+                try {
+                    navigate(`/minutes/${meetingId}`);
+                } catch (e) {
+                    console.error('Failed to navigate to minutes after meeting end:', e);
+                }
             }
+            
             
             // Check for active voting motion
             const votingMotion = data.motionQueue.find(m => m.status === 'voting');
@@ -320,6 +328,21 @@ const MeetingPage = () => {
         }
     };
 
+    const handleEndMeeting = async () => {
+        try {
+            const updated = { ...meetingData, ended: true };
+            setMeetingData(updated);
+            await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated),
+            });
+        } catch (e) {
+            console.error('Failed to persist meeting end flag', e);
+        }
+        navigate(`/minutes/${meetingId}`);
+    };
+
     const handleVote = async (vote) => {
         if (!votingMotion || hasVoted) return;
 
@@ -438,6 +461,7 @@ const MeetingPage = () => {
                 />
             )}
             <Taskbar />
+            {/* End Meeting button moved to a fixed bottom-right position so it isn't inside the sidebar */}
             <div className="main-container">
                 <AgendaSidebar
                     meetingData={meetingData}
@@ -472,6 +496,27 @@ const MeetingPage = () => {
                     showPendingMotions={showPendingMotions}
                     setShowPendingMotions={setShowPendingMotions}
                 />
+            {isChairman && (
+                <button
+                    className="end-meeting-fixed"
+                    title="End Meeting and view minutes"
+                    onClick={() => setShowEndConfirm(true)}
+                >
+                    End Meeting
+                </button>
+            )}
+            {showEndConfirm && (
+                <div className="confirm-modal-backdrop" onClick={() => setShowEndConfirm(false)}>
+                    <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+                        <h3>Confirm End Meeting</h3>
+                        <p>Are you sure you want to end the meeting? This will navigate everyone to the minutes page.</p>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                            <button className="cancel-btn sidebar-btn" onClick={() => setShowEndConfirm(false)}>Cancel</button>
+                            <button className="confirm-btn sidebar-btn" onClick={async () => { setShowEndConfirm(false); await handleEndMeeting(); }}>End Meeting</button>
+                        </div>
+                    </div>
+                </div>
+            )}
             </div>
         </div>
     );

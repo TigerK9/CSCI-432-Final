@@ -26,7 +26,7 @@ function App() {
           {/* Protected Routes */}
           <Route path="/home" element={<HomePage />} />
           <Route path="/meeting/:meetingId" element={<MeetingPage />} />
-          <Route path="/minutes" element={<MinutesPage />} />
+          <Route path="/minutes/:meetingId" element={<MinutesPage />} />
           <Route path="/results" element={<VotingResultsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/" element={<Navigate to="/home" />} />
