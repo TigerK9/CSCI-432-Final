@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import Taskbar from '../components/Taskbar';
 import '../css/home_style.css'; // Assuming styles are compatible
 
 const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting }) => {
@@ -71,13 +72,6 @@ const HomePage = () => {
     fetchMeetings();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('currentUserEmail');
-    localStorage.removeItem('currentUserRole');
-    navigate('/login');
-  };
-
   const handleCreateMeeting = async (newMeeting) => {
     try {
       const response = await fetch('http://localhost:5002/api/meetings', {
@@ -125,20 +119,7 @@ const HomePage = () => {
 
   return (
     <div className="home-page-wrapper">
-      <div className="taskbar">
-        <div className="taskbar-left">
-          {/* The home link is already on the home page, so it's not strictly necessary */}
-          <span className="taskbar-icon" title="Home"><i className="bi-house"></i></span>
-        </div>
-        <div className="taskbar-right">
-          <Link to="/profile" className="taskbar-icon" title="Profile">
-            <i className="bi-person"></i>
-          </Link>
-          <a href="#" onClick={handleLogout} className="taskbar-icon" title="Logout">
-            <i className="bi-box-arrow-right"></i>
-          </a>
-        </div>
-      </div>
+      <Taskbar />
 
       <div className="grid-container">
         {meetings.map((meeting) => (

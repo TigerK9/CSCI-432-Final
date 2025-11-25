@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Taskbar from '../components/Taskbar';
 import '../css/profileEditor_style.css'; // Importing the correct CSS file
 
 const ProfilePage = () => {
@@ -77,20 +77,7 @@ const ProfilePage = () => {
     // --- JSX START ---
     return (
         <div className="profile-page-wrapper">
-            {/* Taskbar structure is mostly correct, but needs the right-side icons if they existed */}
-            <div className="taskbar">
-                <div className="taskbar-left">
-                    <Link to="/home" className="taskbar-icon" title="Home">
-                        <i className="bi-house"></i>
-                    </Link>
-                </div>
-                {/* Re-add taskbar-right section from original HTML if needed */}
-                <div className="taskbar-right">
-                    <Link to="/profile" className="taskbar-icon" title="Profile">
-                        <i className="bi-person"></i>
-                    </Link>
-                </div>
-            </div>
+            <Taskbar />
 
             {/* FIX 1: Restore the main centering container */}
             <div className="content-area">

@@ -277,6 +277,23 @@
     background-color: #cce5ff;
     color: #004085;
 }
+/* Final/result statuses */
+.status-badge.failed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+.status-badge.tied {
+    background-color: #fff3cd;
+    color: #856404;
+}
+.status-badge.no-votes {
+    background-color: #e2e3e5;
+    color: #6c757d;
+}
+.status-badge.proposed {
+    background-color: #e6ffe6;
+    color: #155724;
+}
 .agenda-item.active {
     background-color: #d9edf7; 
     border-left: 4px solid #2196F3;
@@ -367,4 +384,69 @@
     justify-content: space-between;
     margin-top: 3px;
     gap: 7px;
+}
+
+/* Fixed End Meeting button placed bottom-right of the viewport */
+.end-meeting-fixed {
+    position: fixed;
+     /* Place at the very bottom-right of the viewport */
+     right: 16px;
+     bottom: 24px; /* closer to the viewport bottom */
+     z-index: 1300; /* ensure it's above sidebars, taskbar and footer */
+    background: #ef4444;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    font-weight: 600;
+}
+.end-meeting-fixed:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 1100px) {
+    /* On narrower screens place the button at the bottom-right */
+    .end-meeting-fixed {
+        right: 16px;
+        bottom: 24px;
+        padding: 8px 12px;
+        font-size: 0.95rem;
+    }
+}
+
+/* Confirmation modal for destructive actions */
+.confirm-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1400; /* above the end button */
+}
+.confirm-modal {
+    background: #fff;
+    color: #111;
+    padding: 18px 20px;
+    border-radius: 10px;
+    max-width: 420px;
+    width: calc(100% - 40px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+.confirm-modal h3 {
+    margin: 0 0 8px 0;
+}
+.confirm-modal p {
+    margin: 0;
+    color: #333;
+}
+.confirm-btn {
+    background: #ef4444 !important;
+    color: white !important;
+}
+.cancel-btn {
+    background: #d1d5db !important;
+    color: #111 !important;
 }

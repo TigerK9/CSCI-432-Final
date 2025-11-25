@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DraggableList from './DraggableList';
+import '../css/motion_queue.css';
 
 const MotionQueueSidebar = ({
     meetingData,
@@ -72,7 +73,7 @@ const MotionQueueSidebar = ({
         : fullList.map((m, i) => ({ motion: m, fullIndex: i }));
 
     return (
-        <div className="sidebar sidebar-right">
+        <div className="sidebar sidebar-right motion-queue-sidebar">
             <h2>Motion Queue</h2>
             <div id="motion-queue-container">
                 {isMotionQueueEditing ? (
@@ -135,17 +136,27 @@ const MotionQueueSidebar = ({
                     </>
                 ) : (
                     <>
-                        {visibleWithFullIndex.map((x, idx) => (
-                            <div
-                                key={x.fullIndex}
-                                className={`motion-item ${x.fullIndex === meetingData.currentMotionIndex ? 'active' : ''}`}
-                            >
-                                {`${idx + 1}. ${x.motion.name}`}
-                                <span className={`status-badge ${x.motion.status}`}>
-                                    {x.motion.status.charAt(0).toUpperCase() + x.motion.status.slice(1)}
-                                </span>
-                            </div>
-                        ))}
+                        {visibleWithFullIndex.map((x, idx) => {
+                            // Prefer a recorded result if present (for legacy documents that
+                            // still have status 'completed' but a 'result' field).
+                            const statusKey = x.motion.result || x.motion.status || '';
+                            const statusLabel = statusKey
+                                ? statusKey.replace('-', ' ').replace(/(^|\s)\S/g, t => t.toUpperCase())
+                                : '';
+                            return (
+                                <div 
+                                    key={x.fullIndex} 
+                                    className={`motion-item ${x.fullIndex === meetingData.currentMotionIndex ? 'active' : ''}`}
+                                >
+                                    {`${idx + 1}. ${x.motion.name}`}
+                                    {statusKey && (
+                                        <span className={`status-badge ${statusKey}`}>
+                                            {statusLabel}
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </>
                 )}
             </div>

@@ -16,8 +16,9 @@ const PendingMotionsReview = ({ motions, onReview, onClose }) => {
             // The parent (`MeetingPage`) expects the pending-list index and will
             // map it to the actual index in the full motionQueue.
             await onReview(index, action);
+            // Clear the selection but keep the modal open; the parent will
+            // update the motions prop and this component will re-render.
             setSelectedMotion(null);
-            onClose();
         } catch (e) {
             setError('Failed to process motion. Please try again.');
         } finally {

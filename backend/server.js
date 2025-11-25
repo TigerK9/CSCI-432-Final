@@ -37,12 +37,15 @@ const meetingSchema = new mongoose.Schema({
     currentAgendaIndex: { type: Number, default: 0 },
     currentMotionIndex: { type: Number, default: 0 },
     agenda: [String],
+    // Flag indicating the meeting has been ended by the chairman
+    ended: { type: Boolean, default: false },
     motionQueue: [{
         name: String,
         description: String,
         creator: String,
         // Include 'proposed' to be tolerant of legacy data; canonical value is 'pending'
-        status: { type: String, enum: ['pending', 'proposed', 'approved', 'denied', 'active', 'voting', 'completed'], default: 'pending' },
+        // Expanded enum to include final states for completed votes
+        status: { type: String, enum: ['pending', 'proposed', 'approved', 'denied', 'active', 'voting', 'completed', 'failed', 'tied', 'no-votes'], default: 'pending' },
         proposedBy: String,
         votes: {
             aye: { type: Number, default: 0 },
@@ -368,11 +371,13 @@ app.post('/api/meetings/:meetingId/start-vote/:motionIndex', authMiddleware, asy
 });
 
 // Helper function to determine motion result
+// Determine the outcome of a vote. Returns one of:
+// 'approved' (aye > no), 'failed' (aye < no), 'tied' (aye == no), 'no-votes' (0 votes)
 const determineMotionResult = (votes) => {
-    const totalVotes = votes.aye + votes.no;
+    const totalVotes = (votes?.aye || 0) + (votes?.no || 0);
     if (totalVotes === 0) return 'no-votes';
-    if (votes.aye === votes.no) return 'tie';
-    return votes.aye > votes.no ? 'approved' : 'failed';
+    if ((votes.aye || 0) === (votes.no || 0)) return 'tied';
+    return (votes.aye || 0) > (votes.no || 0) ? 'approved' : 'failed';
 };
 
 // Complete voting on a motion
@@ -390,9 +395,11 @@ app.post('/api/meetings/:meetingId/complete-voting/:motionIndex', async (req, re
             return res.status(400).json({ message: 'Motion is not currently in voting state' });
         }
 
-        // Mark the motion as completed and determine result
-        motion.status = 'completed';
-        motion.result = determineMotionResult(motion.votes);
+        // Determine result and mark the motion with that final state.
+        const result = determineMotionResult(motion.votes);
+        // Set both status and result so clients can display final outcome.
+        motion.status = result;
+        motion.result = result;
         await meeting.save();
 
         res.json({
@@ -426,8 +433,11 @@ app.post('/api/meetings/:meetingId/vote/:motionIndex', authMiddleware, async (re
         }
 
         if (new Date() > new Date(motion.votingEndsAt)) {
-            motion.status = 'completed';
-            motion.result = determineMotionResult(motion.votes);
+            // Voting window expired — compute final result and set status accordingly
+            console.log("Setting the motion result");
+            const final = determineMotionResult(motion.votes);
+            motion.status = final; // e.g., 'approved', 'failed', 'tied', or 'no-votes'
+            motion.result = final;
             await meeting.save();
             return res.status(400).json({ 
                 message: 'Voting period has ended',
