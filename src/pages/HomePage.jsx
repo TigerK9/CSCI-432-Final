@@ -49,6 +49,7 @@ const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting }) => {
 const HomePage = () => {
   const [meetings, setMeetings] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, meetingId: null, meetingName: '' });
   const userRole = localStorage.getItem('currentUserRole');
   const navigate = useNavigate();
 
@@ -93,27 +94,30 @@ const HomePage = () => {
     setIsModalOpen(false);
   };
 
-  const handleDeleteMeeting = async (e, meetingId, meetingName) => {
+  const handleDeleteClick = (e, meetingId, meetingName) => {
     // Stop the click from navigating to the meeting page
     e.preventDefault();
     e.stopPropagation();
+    setDeleteConfirm({ show: true, meetingId, meetingName });
+  };
 
-    if (window.confirm(`Are you sure you want to delete the meeting "${meetingName}"?`)) {
-      try {
-        const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
-          method: 'DELETE',
-        });
+  const handleConfirmDelete = async () => {
+    const { meetingId } = deleteConfirm;
+    setDeleteConfirm({ show: false, meetingId: null, meetingName: '' });
+    
+    try {
+      const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+        method: 'DELETE',
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to delete meeting');
-        }
-
-        // Update the UI by filtering out the deleted meeting
-        setMeetings(meetings.filter(m => m._id !== meetingId));
-      } catch (error) {
-        console.error("Error deleting meeting:", error);
-        alert("Failed to delete meeting.");
+      if (!response.ok) {
+        throw new Error('Failed to delete meeting');
       }
+
+      // Update the UI by filtering out the deleted meeting
+      setMeetings(meetings.filter(m => m._id !== meetingId));
+    } catch (error) {
+      console.error("Error deleting meeting:", error);
     }
   };
 
@@ -129,9 +133,14 @@ const HomePage = () => {
               <div className="meeting-description">{meeting.description}</div>
               <div className="meeting-datetime">{meeting.datetime}</div>
               {(userRole === 'admin' || userRole === 'chairman') && (
-                <button className="delete-meeting-btn" onClick={(e) => handleDeleteMeeting(e, meeting._id, meeting.name)}>
-                  <i className="bi-trash"></i>
-                </button>
+                <>
+                  <button className="people-meeting-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                    <i className="bi-people"></i>
+                  </button>
+                  <button className="delete-meeting-btn" onClick={(e) => handleDeleteClick(e, meeting._id, meeting.name)}>
+                    <i className="bi-trash"></i>
+                  </button>
+                </>
               )}
             </div>
           </Link>
@@ -150,6 +159,19 @@ const HomePage = () => {
         onClose={() => setIsModalOpen(false)}
         onCreateMeeting={handleCreateMeeting}
       />
+
+      {deleteConfirm.show && (
+        <div className="confirm-modal-backdrop" onClick={() => setDeleteConfirm({ show: false, meetingId: null, meetingName: '' })}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Confirm Delete Meeting</h3>
+            <p>Are you sure you want to delete "{deleteConfirm.meetingName}"? This action cannot be undone.</p>
+            <div className="confirm-modal-buttons">
+              <button className="cancel-btn" onClick={() => setDeleteConfirm({ show: false, meetingId: null, meetingName: '' })}>Cancel</button>
+              <button className="confirm-btn" onClick={handleConfirmDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -14,26 +14,6 @@ body {
     scrollbar-width: thin;
     scrollbar-color: #588157 #f7f7f7;
 }
-.motion-item:hover {
-    background-color: #e9ecef;
-}
-.motion-item.active {
-    background-color: #588157;
-    color: white;
-}
-.motion-item.active .time-badge, .motion-item.active .result-badge {
-    background-color: white;
-    color: #588157;
-    font-weight: 700;
-}
-.time-badge {
-    background-color: #d8f8e1;
-    color: #4a755a;
-}
-.result-badge {
-    background-color: #fff3cd;
-    color: #856404;
-}
 
 /* --- TASKBAR STYLES --- */
 .taskbar {
@@ -78,6 +58,8 @@ body {
 header {
     position: static;
     padding: 0; /* Remove header padding as we'll pad the content inside */
+    margin-left: 16px;
+    margin-right: 16px;
 }
 .page-header {
     /* Header itself should not add extra top padding; page-content provides spacing */
@@ -105,14 +87,21 @@ header {
 }
 
 .header-card {
-    background-color: #4b5b4a;
+    background: linear-gradient(135deg, #4b5b4a 0%, #3a4a39 100%);
     color: #fff;
-    padding: 16px;
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    padding: 24px 16px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     text-align: center;
     position: relative;
-    z-index: 20; /* sit above the sidebar header but below the taskbar (taskbar z-index:1000) */
+    z-index: 20;
+}
+
+.header-card h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
 }
 
 .main-grid {
@@ -137,126 +126,210 @@ header {
 /* Sidebar */
 .minutes-sidebar {
     background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     max-height: 600px;
     min-width: 0;
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.minutes-sidebar:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
 }
 
 .minutes-sidebar-header {
-    padding: 14px 16px;
+    padding: 18px 20px;
     border-bottom: 1px solid #efefef;
     position: sticky;
     top: 0;
-    background: #fff;
+    background: linear-gradient(to bottom, #fff 80%, rgba(255,255,255,0.95));
     z-index: 5;
 }
 
 .minutes-sidebar-header h2 {
     margin: 0;
-    font-size: 1.05rem;
-    color: #3b3b3b;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e2c;
+    letter-spacing: -0.01em;
 }
 
 .motion-list {
-    padding: 12px;
+    padding: 14px;
     overflow-y: auto;
 }
 
 .motion-item {
-    padding: 12px;
-    border-bottom: 1px solid #f1f1f1;
+    padding: 14px 16px;
+    border-bottom: none;
     cursor: pointer;
-    border-radius: 8px;
-    transition: background 0.12s ease, transform 0.08s ease;
+    border-radius: 10px;
+    transition: all 0.15s ease;
     margin-bottom: 8px;
+    background: #f9faf9;
+    border: 1px solid transparent;
+}
+
+.motion-item:last-child {
+    margin-bottom: 0;
 }
 
 .motion-item:hover {
-    background: #f6fbf6;
-    transform: translateY(-1px);
+    background: #f0f7f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(88, 129, 87, 0.1);
+    border-color: rgba(88, 129, 87, 0.15);
 }
 
 .motion-item.active {
-    background-color: #588157;
-    color: #fff;
-}
-
-.motion-item.active .time-badge,
-.motion-item.active .result-badge {
-    background-color: #fff;
-    color: #588157;
-    font-weight: 700;
+    background: #fff;
+    color: #1a2e1a;
+    border: 2px solid #588157;
+    box-shadow: 0 4px 16px rgba(88, 129, 87, 0.15);
+    transform: translateY(-2px);
 }
 
 .motion-item-top { display:flex; align-items:center; justify-content:space-between; }
 .motion-badges { display:flex; gap:8px; align-items:center; }
 
 .time-badge {
-    background-color: #d8f8e1;
-    color: #4a755a;
-    padding: 4px 8px;
-    border-radius: 16px;
-    font-size: 0.8rem;
+    background-color: #e3f2e8;
+    color: #2d6a3f;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 500;
 }
 
 .result-badge {
-    background-color: #fff3cd;
-    color: #856404;
-    padding: 4px 8px;
-    border-radius: 16px;
-    font-size: 0.8rem;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
-.result-badge.passed { background: #dff3e6; color: #116530; }
-.result-badge.failed { background: #ffecec; color: #9a1e1e; }
+.result-badge.passed { background: #e0f5e8; color: #0d7a3d; }
+.result-badge.failed { background: #ffeaea; color: #c41e1e; }
+.result-badge.tied { background: #fff8e6; color: #8a6d00; }
+.result-badge.proposed,
+.result-badge.pending,
+.result-badge.denied,
+.result-badge.default { background: #f0f0f0; color: #666; }
 
-.motion-title { margin: 8px 0 0 0; font-weight: 700; font-size: 1rem; }
+.motion-title { margin: 10px 0 0 0; font-weight: 600; font-size: 0.95rem; line-height: 1.4; }
 
 /* Details panel */
 .minutes-details-panel {
     background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     padding: 0;
     overflow: auto;
     max-height: 600px;
     min-width: 0;
+    border: 1px solid rgba(0,0,0,0.04);
 }
 
-.details-inner { padding: 28px; }
-.motion-page-title { font-size: 1.6rem; margin: 0 0 8px 0; color: #243023; }
-.motion-meta { display:flex; gap:12px; margin-bottom: 18px; align-items:center; }
-.meta-badge { padding:6px 10px; border-radius: 16px; font-size:0.9rem; }
+.details-inner { padding: 32px; }
+.motion-page-title { 
+    font-size: 1.75rem; 
+    margin: 0 0 12px 0; 
+    color: #1a2e1a; 
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+.motion-meta { display:flex; gap:12px; margin-bottom: 24px; align-items:center; flex-wrap: wrap; }
+.meta-badge { 
+    padding: 8px 14px; 
+    border-radius: 20px; 
+    font-size: 0.85rem; 
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
 .meta-badge.time { background:#eef6ff; color:#0b57a4; }
-.meta-badge.passed { background:#dff3e6; color:#116530; }
-.meta-badge.failed { background:#ffecec; color:#9a1e1e; }
+.meta-badge.passed { background:#e0f5e8; color:#0d7a3d; }
+.meta-badge.failed { background:#ffeaea; color:#c41e1e; }
+.meta-badge.tied { background:#fff8e6; color:#8a6d00; }
+.meta-badge.proposed,
+.meta-badge.pending,
+.meta-badge.denied,
+.meta-badge.default { background:#f0f0f0; color:#666; }
 
-.section-title { margin-top:18px; margin-bottom:8px; font-size:1.05rem; border-bottom:1px solid #f1f1f1; padding-bottom:6px; color:#3b3b3b; }
-.motion-description { color:#4b4b4b; line-height:1.5; }
+.section-title { 
+    margin-top: 28px; 
+    margin-bottom: 12px; 
+    font-size: 1rem; 
+    font-weight: 600;
+    border-bottom: 2px solid #e8ece8; 
+    padding-bottom: 8px; 
+    color: #2c3e2c;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.motion-description { 
+    color: #4a4a4a; 
+    line-height: 1.7; 
+    font-size: 1rem;
+}
 
-.voting-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-top:12px; }
-.vote-card { padding:14px; border-radius:10px; text-align:center; box-shadow:inset 0 -1px 0 rgba(0,0,0,0.02); }
-.vote-card .vote-number { font-size:1.6rem; font-weight:700; margin:0; }
-.vote-card .vote-label { margin:4px 0 0 0; color:#555; }
-.vote-card.yes { background:#eaf6f1; color:#0b7a43; }
-.vote-card.no { background:#fff0f0; color:#b22222; }
-.vote-card.abstain { background:#fffaf0; color:#8a5b0c; }
+.voting-grid { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 16px; 
+    margin-top: 16px; 
+}
+.vote-card { 
+    padding: 20px; 
+    border-radius: 12px; 
+    text-align: center; 
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.vote-card:hover {
+    transform: translateY(-2px);
+}
+.vote-card .vote-number { font-size: 2rem; font-weight: 700; margin: 0; }
+.vote-card .vote-label { margin: 6px 0 0 0; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+.vote-card.aye { background: linear-gradient(135deg, #e8f5ec 0%, #d4edda 100%); color: #0b7a43; box-shadow: 0 2px 8px rgba(11, 122, 67, 0.1); }
+.vote-card.no { background: linear-gradient(135deg, #fff0f0 0%, #ffe6e6 100%); color: #b22222; box-shadow: 0 2px 8px rgba(178, 34, 34, 0.1); }
+.vote-card.abstain { background: linear-gradient(135deg, #fffaf0 0%, #fff3e0 100%); color: #8a5b0c; box-shadow: 0 2px 8px rgba(138, 91, 12, 0.1); }
 
-.chair-summary { padding:14px; background:#fbfff8; border-left:4px solid #4caf50; border-radius:6px; margin-top:8px; }
-.chair-text { margin:0; color:#3b3b3b; font-style:italic; }
+.chair-summary { 
+    padding: 18px 20px; 
+    background: linear-gradient(to right, #f8fff5 0%, #f0faf0 100%); 
+    border-left: 4px solid #4caf50; 
+    border-radius: 8px; 
+    margin-top: 12px; 
+}
+.chair-text { margin: 0; color: #3a4a3a; font-style: italic; line-height: 1.6; }
 
-.no-selection { padding:24px; color:#666; }
+.no-selection { 
+    padding: 48px 24px; 
+    color: #888; 
+    text-align: center;
+    font-size: 1.1rem;
+}
 
-.loading-text { padding:24px; text-align:center; color:#666; }
+.loading-text { padding: 48px; text-align: center; color: #888; font-size: 1.1rem; }
 
 /* small responsive tweaks */
 @media (max-width: 600px) {
     .container { padding: 12px; }
-    .motion-title { font-size: 0.95rem; }
-    .motion-page-title { font-size: 1.25rem; }
-    .voting-grid { grid-template-columns: repeat(1,1fr); }
+    .header-card { padding: 18px 14px; }
+    .header-card h1 { font-size: 1.4rem; }
+    .motion-title { font-size: 0.9rem; }
+    .motion-page-title { font-size: 1.35rem; }
+    .details-inner { padding: 20px; }
+    .voting-grid { grid-template-columns: 1fr; gap: 12px; }
+    .vote-card { padding: 16px; }
+    .vote-card .vote-number { font-size: 1.6rem; }
+    .minutes-sidebar { max-height: 350px; }
+    .minutes-details-panel { max-height: none; }
 }

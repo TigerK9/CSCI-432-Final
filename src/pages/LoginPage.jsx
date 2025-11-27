@@ -35,7 +35,6 @@ const LoginPage = () => {
             localStorage.setItem('currentUserRole', data.role);
             localStorage.setItem('currentUserName', data.name);
             
-            alert('Login successful!');
             navigate('/home'); // Redirect to the home page
         } catch (error) {
             alert(error.message);

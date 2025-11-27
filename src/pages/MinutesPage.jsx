@@ -26,20 +26,54 @@ const MinutesPage = () => {
 
                 // Map meeting.motionQueue to the minutes format
                 const mq = Array.isArray(data.motionQueue) ? data.motionQueue : [];
-                const mapped = mq.map((m, idx) => ({
-                    id: idx + 1,
-                    title: m.name || `Motion ${idx + 1}`,
-                    result: m.result ? (
-                        m.result === 'approved' ? 'Passed' : (m.result === 'failed' ? 'Failed' : (m.result === 'tied' ? 'Tied' : (m.result === 'no-votes' ? 'No Votes' : m.result)))
-                    ) : (m.status === 'denied' ? 'Denied' : (m.status === 'proposed' ? 'Proposed' : m.status || '')),
-                    description: m.description || '',
-                    voting_results: {
-                        yes: (m.votes && typeof m.votes.aye === 'number') ? m.votes.aye : ((m.votes && m.votes.aye) ? m.votes.aye : 0),
-                        no: (m.votes && typeof m.votes.no === 'number') ? m.votes.no : ((m.votes && m.votes.no) ? m.votes.no : 0),
-                        abstain: (m.votes && typeof m.votes.abstain === 'number') ? m.votes.abstain : 0,
-                    },
-                    chair_summary: m.reviewedBy ? `Reviewed by ${m.reviewedBy}${m.reviewedAt ? ` on ${new Date(m.reviewedAt).toLocaleString()}` : ''}` : '',
-                }));
+                const mapped = mq.map((m, idx) => {
+                    // Determine the display result based on status
+                    let displayResult = '';
+                    switch (m.status) {
+                        case 'approved':
+                            displayResult = 'Passed';
+                            break;
+                        case 'completed':
+                            displayResult = 'Passed';
+                            break;
+                        case 'failed':
+                            displayResult = 'Failed';
+                            break;
+                        case 'tied':
+                            displayResult = 'Tied';
+                            break;
+                        case 'no-votes':
+                            displayResult = 'No Votes';
+                            break;
+                        case 'denied':
+                            displayResult = 'Denied';
+                            break;
+                        case 'proposed':
+                            displayResult = 'Proposed';
+                            break;
+                        case 'pending':
+                            displayResult = 'Pending';
+                            break;
+                        case 'active':
+                        case 'voting':
+                            displayResult = 'In Progress';
+                            break;
+                        default:
+                            displayResult = m.status ? m.status.charAt(0).toUpperCase() + m.status.slice(1) : 'Unknown';
+                    }
+
+                    return {
+                        id: idx + 1,
+                        title: m.name || `Motion ${idx + 1}`,
+                        result: displayResult,
+                        description: m.description || '',
+                        voting_results: {
+                            aye: (m.votes && typeof m.votes.aye === 'number') ? m.votes.aye : ((m.votes && m.votes.aye) ? m.votes.aye : 0),
+                            no: (m.votes && typeof m.votes.no === 'number') ? m.votes.no : ((m.votes && m.votes.no) ? m.votes.no : 0),
+                        },
+                        chair_summary: m.reviewedBy ? `Reviewed by ${m.reviewedBy}${m.reviewedAt ? ` on ${new Date(m.reviewedAt).toLocaleString()}` : ''}` : '',
+                    };
+                });
 
                 if (mapped.length === 0) {
                     setMotions(initialMotionData);
@@ -74,6 +108,14 @@ const MinutesPage = () => {
         setActiveMotionId(id);
     };
 
+    const getResultClass = (result) => {
+        const lower = result.toLowerCase();
+        if (lower === 'passed') return 'passed';
+        if (lower === 'failed') return 'failed';
+        if (lower === 'tied') return 'tied';
+        return 'default'; // proposed, pending, denied, in progress, etc.
+    };
+
     const activeMotion = motions.find(m => m.id === activeMotionId);
 
     return (
@@ -89,14 +131,14 @@ const MinutesPage = () => {
                     <div className="main-grid">
                 <aside className="minutes-sidebar">
                     <div className="minutes-sidebar-header">
-                        <h2>Chronological Motion Index</h2>
+                        <h2>Motion Index</h2>
                     </div>
                     <div id="motion-list-container" className="motion-list">
                         {motions.length > 0 ? motions.map(motion => (
                             <div key={motion.id} className={`motion-item ${motion.id === activeMotionId ? 'active' : ''}`} onClick={() => handleSelectMotion(motion.id)}>
                                 <div className="motion-item-top">
                                     <div className="motion-badges">
-                                        <span className={`result-badge ${motion.result.includes('Passed') ? 'passed' : 'failed'}`}>{motion.result}</span>
+                                        <span className={`result-badge ${getResultClass(motion.result)}`}>{motion.result}</span>
                                     </div>
                                 </div>
                                 <h3 className="motion-title">{motion.title}</h3>
@@ -109,15 +151,14 @@ const MinutesPage = () => {
                         <div className="details-inner">
                             <h2 className="motion-page-title">{activeMotion.title}</h2>
                             <div className="motion-meta">
-                                <span className={`meta-badge ${activeMotion.result.includes('Passed') ? 'passed' : 'failed'}`}>{activeMotion.result}</span>
+                                <span className={`meta-badge ${getResultClass(activeMotion.result)}`}>{activeMotion.result}</span>
                             </div>
                             <h3 className="section-title">Motion Description</h3>
                             <p className="motion-description">{activeMotion.description}</p>
                             <h3 className="section-title">Voting Results</h3>
                             <div className="voting-grid">
-                                <div className="vote-card yes"><p className="vote-number">{activeMotion.voting_results.yes}</p><p className="vote-label">Yes</p></div>
+                                <div className="vote-card aye"><p className="vote-number">{activeMotion.voting_results.aye}</p><p className="vote-label">Aye</p></div>
                                 <div className="vote-card no"><p className="vote-number">{activeMotion.voting_results.no}</p><p className="vote-label">No</p></div>
-                                <div className="vote-card abstain"><p className="vote-number">{activeMotion.voting_results.abstain}</p><p className="vote-label">Abstain</p></div>
                             </div>
                             {activeMotion.chair_summary && <>
                                 <h3 className="section-title">Chair's Summary</h3>
