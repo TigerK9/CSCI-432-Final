@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Taskbar from '../components/Taskbar';
+import { checkAuthAndRedirect, getValidToken } from '../utils/auth';
 import '../css/profileEditor_style.css'; // Importing the correct CSS file
 
 const ProfilePage = () => {
+    const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [editData, setEditData] = useState({
         name: '', // name is now part of the user model
@@ -13,9 +16,9 @@ const ProfilePage = () => {
 
     useEffect(() => {
         const fetchProfile = async () => {
-            const token = localStorage.getItem('token');
+            const token = checkAuthAndRedirect(navigate);
             if (!token) {
-                // Handle not logged in case
+                // Token expired or missing - user will be redirected to login
                 return;
             }
             try {
@@ -41,8 +44,11 @@ const ProfilePage = () => {
     };
 
     const handleSaveChanges = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
+        const token = getValidToken();
+        if (!token) {
+            navigate('/login');
+            return;
+        }
 
         try {
             const response = await fetch('http://localhost:5002/api/profile', {

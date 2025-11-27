@@ -67,16 +67,24 @@ const MeetingPage = () => {
             
             
             // Check for active voting motion
-            const votingMotion = data.motionQueue.find(m => m.status === 'voting');
-            if (votingMotion) {
-                setVotingMotion(votingMotion);
+            const foundVotingMotion = data.motionQueue.find(m => m.status === 'voting');
+            if (foundVotingMotion) {
+                // Only update state if voting motion changed (by ID) to prevent re-render loops
+                setVotingMotion(prev => {
+                    if (!prev || prev._id !== foundVotingMotion._id) {
+                        return foundVotingMotion;
+                    }
+                    // Update the motion data but keep the same reference if ID matches
+                    return { ...prev, ...foundVotingMotion };
+                });
+                
                 const now = new Date();
-                const endsAt = new Date(votingMotion.votingEndsAt);
+                const endsAt = new Date(foundVotingMotion.votingEndsAt);
                 const timeRemaining = Math.max(0, endsAt - now);
                 setTimeLeft(timeRemaining);
 
                 // Check localStorage first for the most immediate feedback
-                const storedVote = localStorage.getItem(`voted-${meetingId}-${votingMotion._id}`);
+                const storedVote = localStorage.getItem(`voted-${meetingId}-${foundVotingMotion._id}`);
                 if (storedVote) {
                     // If a vote is stored locally, trust it as the source of truth
                     // and only update state if it's different, to prevent re-renders.
@@ -86,14 +94,17 @@ const MeetingPage = () => {
                     }
                 } else {
                     // If no local vote, sync with the server state.
-                    const userHasVotedOnServer = votingMotion.voterIds && votingMotion.voterIds.some(voter => voter.userId === userId);
-                    const serverVote = userHasVotedOnServer ? (votingMotion.voterIds.find(voter => voter.userId === userId).vote) : null;
+                    const userHasVotedOnServer = foundVotingMotion.voterIds && foundVotingMotion.voterIds.some(voter => voter.userId === userId);
+                    const serverVote = userHasVotedOnServer ? (foundVotingMotion.voterIds.find(voter => voter.userId === userId).vote) : null;
                     
                     if (hasVoted !== userHasVotedOnServer || selectedVote !== serverVote) {
                         setHasVoted(userHasVotedOnServer);
                         setSelectedVote(serverVote);
                     }
                 }
+            } else {
+                // No voting motion found, clear it if we had one
+                setVotingMotion(prev => prev ? null : prev);
             }
         } catch (error) {
             console.error("Failed to fetch meeting data:", error);
@@ -106,18 +117,25 @@ const MeetingPage = () => {
             setHasVoted(false);
             setSelectedVote(null);
         }
-    }, [votingMotion]);
+    }, [votingMotion?._id]); // Only trigger when voting motion ID changes
+
+    // Track if there's an active vote (by ID, not object reference)
+    const activeVoteId = votingMotion?._id || null;
 
     // Setup data fetching and polling
     useEffect(() => {        
         fetchMeetingData();
-        const pollInterval = setInterval(fetchMeetingData, 3000); // Poll every 3 seconds
+        
+        // Members poll every 10 seconds
+        // Chairman polls every 3 seconds during active voting (to manage vote completion), otherwise 10 seconds
+        const pollIntervalMs = (isChairman && activeVoteId) ? 3000 : 10000;
+        const pollInterval = setInterval(fetchMeetingData, pollIntervalMs);
 
         // Cleanup on unmount or when dependencies change
         return () => {
             if (pollInterval) clearInterval(pollInterval);
         };
-    }, [meetingId, votingMotion, timeLeft]); // Reset polling when time changes too
+    }, [meetingId, activeVoteId, isChairman]); // Use activeVoteId (string) instead of votingMotion (object)
 
     const handleVotingComplete = async (motion) => {
         if (!motion || !meetingData || isCompletingVote) return;

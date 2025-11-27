@@ -108,7 +108,7 @@ app.post('/api/users/login', async (req, res) => {
         }
 
         const payload = { user: { id: user.id, role: user.role, name: user.name } };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
 
         res.json({ token, email: user.email, role: user.role, name: user.name });
     } catch (error) {
@@ -356,8 +356,8 @@ app.post('/api/meetings/:meetingId/start-vote/:motionIndex', authMiddleware, asy
             return res.status(400).json({ message: 'Invalid motion index' });
         }
 
-        // Set voting period (10 seconds for development)
-        const votingEndsAt = new Date(Date.now() + 10000);
+        // Set voting period (45 seconds)
+        const votingEndsAt = new Date(Date.now() + 45000);
         meeting.motionQueue[motionIndex].status = 'voting';
         meeting.motionQueue[motionIndex].votingEndsAt = votingEndsAt;
         meeting.motionQueue[motionIndex].votes = { aye: 0, no: 0 };
