@@ -31,12 +31,14 @@ const userSchema = new mongoose.Schema({
 // --- Mongoose Schema and Model for Meetings ---
 const meetingSchema = new mongoose.Schema({
     meetingId: { type: String, unique: true }, // No longer required on creation
+    joinCode: { type: String, unique: true }, // 6-character code for members to join
     name: { type: String, required: true },
     description: String,
     datetime: String,
     currentAgendaIndex: { type: Number, default: 0 },
     currentMotionIndex: { type: Number, default: 0 },
     agenda: [String],
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Array of user IDs
     // Flag indicating the meeting has been ended by the chairman
     ended: { type: Boolean, default: false },
     motionQueue: [{
@@ -56,10 +58,35 @@ const meetingSchema = new mongoose.Schema({
     }]
 }, { collection: 'meetings' }); // Explicitly set collection name
 
-// This middleware will add the meetingId based on the _id after it's created.
-meetingSchema.pre('save', function(next) {
-    if (this.isNew && !this.meetingId) {
-        this.meetingId = this._id.toString();
+// Helper function to generate a random 6-character alphanumeric code
+const generateJoinCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluded confusing chars like 0, O, 1, I
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+};
+
+// This middleware will add the meetingId and joinCode after it's created.
+meetingSchema.pre('save', async function(next) {
+    if (this.isNew) {
+        if (!this.meetingId) {
+            this.meetingId = this._id.toString();
+        }
+        if (!this.joinCode) {
+            // Generate unique join code
+            let code;
+            let isUnique = false;
+            while (!isUnique) {
+                code = generateJoinCode();
+                const existing = await mongoose.model('Meeting').findOne({ joinCode: code });
+                if (!existing) {
+                    isUnique = true;
+                }
+            }
+            this.joinCode = code;
+        }
     }
     next();
 });
@@ -110,7 +137,7 @@ app.post('/api/users/login', async (req, res) => {
         const payload = { user: { id: user.id, role: user.role, name: user.name } };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
 
-        res.json({ token, email: user.email, role: user.role, name: user.name });
+        res.json({ token, userId: user.id, email: user.email, role: user.role, name: user.name });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
@@ -148,6 +175,46 @@ app.put('/api/profile', authMiddleware, async (req, res) => {
 });
 
 // --- Endpoints for the list of meetings on the homepage ---
+
+// Get users by IDs (for displaying participant info)
+app.get('/api/users/by-ids', async (req, res) => {
+    try {
+        const ids = req.query.ids ? req.query.ids.split(',') : [];
+        if (ids.length === 0) {
+            return res.json([]);
+        }
+        const users = await User.find({ _id: { $in: ids } }).select('_id name email');
+        res.json(users);
+    } catch (error) {
+        console.error('[GET] Error fetching users by IDs:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Get all users (for adding participants to meetings)
+app.get('/api/users', authMiddleware, async (req, res) => {
+    try {
+        const users = await User.find({}).select('_id name email role');
+        res.json(users);
+    } catch (error) {
+        console.error('[GET] Error fetching users:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Get user by email (for adding participants by email)
+app.get('/api/users/by-email/:email', async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.params.email }).select('_id name email');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        console.error('[GET] Error fetching user by email:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
 
 // RENEW THIS LATER!!!! AFTER TESTING !!!!
 // Get all meeting summaries
@@ -199,6 +266,59 @@ app.delete('/api/meetings/:meetingId', async (req, res) => {
         res.json({ message: 'Meeting deleted successfully' });
     } catch (error) {
         console.error('[DELETE] Error deleting meeting:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Update meeting participants
+app.put('/api/meetings/:meetingId/participants', authMiddleware, async (req, res) => {
+    try {
+        const { participants } = req.body; // Array of user IDs
+        console.log(`[PUT] Updating participants for meeting ${req.params.meetingId}:`, participants);
+        
+        const meeting = await Meeting.findById(req.params.meetingId);
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+        
+        meeting.participants = participants;
+        await meeting.save();
+        
+        res.json(meeting);
+    } catch (error) {
+        console.error('[PUT] Error updating participants:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Join a meeting using the 6-character code
+app.post('/api/meetings/join', authMiddleware, async (req, res) => {
+    try {
+        const { joinCode } = req.body;
+        const userId = req.user.id;
+        
+        if (!joinCode || joinCode.length !== 6) {
+            return res.status(400).json({ message: 'Invalid join code' });
+        }
+        
+        const meeting = await Meeting.findOne({ joinCode: joinCode.toUpperCase() });
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+        
+        // Check if user is already a participant
+        if (meeting.participants.includes(userId)) {
+            return res.status(400).json({ message: 'You are already a participant of this meeting' });
+        }
+        
+        // Add user to participants
+        meeting.participants.push(userId);
+        await meeting.save();
+        
+        console.log(`[POST] User ${userId} joined meeting ${meeting._id} with code ${joinCode}`);
+        res.json({ message: 'Successfully joined meeting', meeting });
+    } catch (error) {
+        console.error('[POST] Error joining meeting:', error.message);
         res.status(500).json({ message: error.message });
     }
 });

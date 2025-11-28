@@ -31,6 +31,7 @@ const LoginPage = () => {
             // --- Login Success ---
             localStorage.setItem('token', data.token);
             localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('currentUserId', data.userId);
             localStorage.setItem('currentUserEmail', email);
             localStorage.setItem('currentUserRole', data.role);
             localStorage.setItem('currentUserName', data.name);

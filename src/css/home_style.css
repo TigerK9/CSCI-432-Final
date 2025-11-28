@@ -337,3 +337,312 @@
 .confirm-modal-buttons .confirm-btn:hover {
     background: #c82333;
 }
+
+/* --- Participants Modal --- */
+.participants-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+}
+
+.participants-modal {
+    background: #fefefe;
+    padding: 24px;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.participants-modal h2 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 1.35rem;
+}
+
+.participants-modal .close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.participants-modal .close:hover {
+    color: #333;
+}
+
+.participants-meeting-name {
+    margin: 0 0 16px 0;
+    color: #777;
+    font-size: 0.95rem;
+}
+
+.participants-list {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 100px;
+    max-height: 50vh;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.participant-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.participant-item:last-child {
+    border-bottom: none;
+}
+
+.participant-item i.bi-person-circle {
+    font-size: 1.5rem;
+    color: #878E76;
+}
+
+.participant-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.participant-name {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.participant-email {
+    font-size: 0.85rem;
+    color: #777;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.participant-item span {
+    font-size: 1rem;
+    color: #333;
+    flex: 1;
+}
+
+.remove-participant-btn {
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #999;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+}
+
+.remove-participant-btn:hover {
+    background: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.participants-modal-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.participants-modal-buttons button {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.participants-modal-buttons .cancel-btn {
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #555;
+}
+
+.participants-modal-buttons .cancel-btn:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.participants-modal-buttons .save-btn {
+    border: none;
+    background: #878E76;
+    color: #fff;
+}
+
+.participants-modal-buttons .save-btn:hover {
+    background: #6e7560;
+}
+
+/* Add Participant Section */
+.add-participant-section {
+    margin-bottom: 16px;
+}
+
+.add-participant-input-row {
+    display: flex;
+    gap: 8px;
+}
+
+.add-participant-input-row input {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none;
+}
+
+.add-participant-input-row input:focus {
+    border-color: #878E76;
+}
+
+.add-participant-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #878E76;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.2s ease;
+}
+
+.add-participant-btn:hover {
+    background: #6e7560;
+}
+
+.add-participant-error {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin: 6px 0 0 0;
+}
+
+.no-participants {
+    text-align: center;
+    color: #777;
+    padding: 20px;
+    margin: 0;
+}
+
+/* Join Code Display */
+.join-code-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #f5f5f5;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.join-code-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.join-code-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 7px;
+    color: #333;
+    background: #fff;
+    padding: 10px 16px;
+    border-radius: 4px;
+    border: 1px dashed #ccc;
+}
+
+/* Join Meeting Modal */
+.join-modal-content {
+    text-align: center;
+}
+
+.join-modal-description {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.join-code-input {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 6px;
+    text-align: center;
+    text-transform: uppercase;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.join-code-input:focus {
+    border-color: #878E76;
+}
+
+.join-error {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin: 12px 0;
+}
+
+.join-submit-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: #878E76;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: background-color 0.2s ease;
+}
+
+.join-submit-btn:hover {
+    background: #6e7560;
+}
+
+.join-submit-btn:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
