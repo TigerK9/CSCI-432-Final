@@ -370,7 +370,10 @@ const HomePage = () => {
     try {
       const response = await fetch('http://localhost:5002/api/meetings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify(newMeeting),
       });
 
@@ -401,6 +404,9 @@ const HomePage = () => {
     try {
       const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
 
       if (!response.ok) {

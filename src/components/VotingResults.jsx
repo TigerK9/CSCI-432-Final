@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import '../css/voting_results.css';
 
 const VotingResults = ({ motion, onClose }) => {
@@ -6,9 +6,29 @@ const VotingResults = ({ motion, onClose }) => {
     const ayePercentage = totalVotes > 0 ? Math.round((motion.votes.aye / totalVotes) * 100) : 0;
     const noPercentage = totalVotes > 0 ? Math.round((motion.votes.no / totalVotes) * 100) : 0;
 
+    // Handle escape key
+    const handleKeyDown = useCallback((e) => {
+        if (e.key === 'Escape') {
+            onClose();
+        }
+    }, [onClose]);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
+
+    // Handle click outside
+    const handleOverlayClick = (e) => {
+        if (e.target.classList.contains('voting-results-overlay')) {
+            onClose();
+        }
+    };
+
     return (
-        <div className="voting-results-overlay">
+        <div className="voting-results-overlay" onClick={handleOverlayClick}>
             <div className="voting-results-modal">
+                <button className="voting-results-close-btn" onClick={onClose}>&times;</button>
                 <h2>Voting Results</h2>
                 <h3 className="motion-title">{motion.name}</h3>
                 
