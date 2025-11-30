@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import '../css/signup_style.css'; // Assuming styles are compatible
+import '../css/signup_style.css'; 
 
 const SignupPage = () => {
     const [name, setName] = useState('');
@@ -32,55 +32,65 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-custom-gradient p-4">
-            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
-                <h2 className="text-center mb-6 text-2xl font-semibold text-gray-800">Sign Up</h2>
+        <div className="signup-container">
+            <div className="signup-card">
+                <h2 className="signup-title">Sign Up</h2>
+                
                 <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label htmlFor="name" className="block mb-1 text-sm font-medium text-gray-600">Full Name</label>
+                    <div className="form-group">
+                        <label htmlFor="name" className="form-label">Full Name</label>
                         <input
                             type="text"
                             id="name"
+                            className="form-input"
                             placeholder="Enter your full name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
-                            className="w-full p-3 border border-gray-300 rounded-lg text-base outline-none transition duration-300 input-focus"
                         />
                     </div>
-                    <div className="mb-4">
-                        <label htmlFor="email" className="block mb-1 text-sm font-medium text-gray-600">Email Address</label>
+
+                    <div className="form-group">
+                        <label htmlFor="email" className="form-label">Email Address</label>
                         <input
                             type="email"
                             id="email"
+                            className="form-input"
                             placeholder="Enter your email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full p-3 border border-gray-300 rounded-lg text-base outline-none transition duration-300 input-focus"
                         />
                     </div>
-                    <div className="mb-8">
-                        <label htmlFor="password" className="block mb-1 text-sm font-medium text-gray-600">Password</label>
+
+                    <div className="form-group">
+                        <label htmlFor="password" className="form-label">Password</label>
                         <input
                             type="password"
                             id="password"
+                            className="form-input"
                             placeholder="Create a password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full p-3 border border-gray-300 rounded-lg text-base outline-none transition duration-300 input-focus"
                         />
                     </div>
+
                     <button
                         type="submit"
                         disabled={!isFormValid}
-                        className={`w-full p-3 mt-4 mb-6 btn-primary text-white font-semibold rounded-lg text-lg transition duration-300 hover:scale-[1.01] active:scale-[0.99] ${!isFormValid ? 'btn-disabled-state' : 'btn-valid-state'}`}
+                        className="btn-submit"
                     >
                         Create Account
                     </button>
                 </form>
-                <p className="text-center text-sm">Already have an account? <Link to="/login" className="text-link-color hover:underline font-medium">Sign In</Link></p>
+
+                <p className="signup-footer">
+                    Already have an account?{' '}
+                    <Link to="/login" className="signup-link">
+                        Sign In
+                    </Link>
+                </p>
             </div>
         </div>
     );

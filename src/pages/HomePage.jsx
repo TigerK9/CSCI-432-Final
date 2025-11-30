@@ -342,21 +342,15 @@ const HomePage = () => {
   useEffect(() => {
     const fetchMeetings = async () => {
       try {
-        const response = await fetch('http://localhost:5002/api/meetings');
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5002/api/meetings', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch meetings');
         }
         const data = await response.json();
-        
-        // For members, only show meetings they're a participant of
-        if (userRole === 'member') {
-          const filteredMeetings = data.filter(meeting => 
-            meeting.participants && meeting.participants.includes(currentUserId)
-          );
-          setMeetings(filteredMeetings);
-        } else {
-          setMeetings(data);
-        }
+        setMeetings(data);
       } catch (error) {
         console.error("Error fetching meetings:", error);
         setMeetings([]); // Set to empty array on error
@@ -368,9 +362,10 @@ const HomePage = () => {
 
   const handleCreateMeeting = async (newMeeting) => {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5002/api/meetings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
         body: JSON.stringify(newMeeting),
       });
 
@@ -399,8 +394,10 @@ const HomePage = () => {
     setDeleteConfirm({ show: false, meetingId: null, meetingName: '' });
     
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
         method: 'DELETE',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
 
       if (!response.ok) {
@@ -453,28 +450,40 @@ const HomePage = () => {
               <div className="meeting-name">{meeting.name}</div>
               <div className="meeting-description">{meeting.description}</div>
               <div className="meeting-datetime">{meeting.datetime}</div>
-              {(userRole === 'admin' || userRole === 'chairman') && (
-                <>
-                  <button className="people-meeting-btn" onClick={(e) => handlePeopleClick(e, meeting)}>
-                    <i className="bi-people"></i>
-                  </button>
-                  <button className="delete-meeting-btn" onClick={(e) => handleDeleteClick(e, meeting._id, meeting.name)}>
-                    <i className="bi-trash"></i>
-                  </button>
-                </>
-              )}
+              {(() => {
+                const isChair = String(meeting.chairman) === currentUserId;
+                const canSeeCode = userRole === 'admin' || isChair;
+                return (
+                  <>
+                    {canSeeCode && meeting.joinCode && (
+                      <div className="meeting-code" style={{ display: 'flex', alignItems: 'center', marginTop: 6 }}>
+                        {/* <span style={{ fontWeight: '600', marginRight: 8 }}>Code: {meeting.joinCode}</span> */}
+                      </div>
+                    )}
+
+                    {(userRole === 'admin' || isChair) && (
+                      <>
+                        <button className="people-meeting-btn" onClick={(e) => handlePeopleClick(e, meeting)}>
+                          <i className="bi-people"></i>
+                        </button>
+                        <button className="delete-meeting-btn" onClick={(e) => handleDeleteClick(e, meeting._id, meeting.name)}>
+                          <i className="bi-trash"></i>
+                        </button>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </Link>
         ))}
 
-        {(userRole === 'admin' || userRole === 'chairman') && (
-          <div className="box new-meeting" onClick={() => setIsModalOpen(true)}>
-            <div className="plus">+</div>
-            <div>New Meeting</div>
-          </div>
-        )}
+        <div className="box new-meeting" onClick={() => setIsModalOpen(true)}>
+          <div className="plus">+</div>
+          <div>New Meeting</div>
+        </div>
 
-        {userRole === 'member' && (
+        {userRole !== 'admin' && userRole !== 'chairman' && (
           <div className="box new-meeting" onClick={() => setIsJoinModalOpen(true)}>
             <div className="plus"><i className="bi-box-arrow-in-right"></i></div>
             <div>Join Meeting</div>

@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema({
 const meetingSchema = new mongoose.Schema({
     meetingId: { type: String, unique: true }, // No longer required on creation
     joinCode: { type: String, unique: true }, // 6-character code for members to join
+    chairman: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // meeting owner
     name: { type: String, required: true },
     description: String,
     datetime: String,
@@ -216,13 +217,21 @@ app.get('/api/users/by-email/:email', async (req, res) => {
     }
 });
 
-// RENEW THIS LATER!!!! AFTER TESTING !!!!
-// Get all meeting summaries
-app.get('/api/meetings', async (req, res) => {
+// Get meetings visible to the requesting user
+app.get('/api/meetings', authMiddleware, async (req, res) => {
     try {
-        console.log('[GET] Request received for all meetings.');
-        const meetings = await Meeting.find({});
-       res.json(meetings);
+        console.log('[GET] Request received for meetings for user:', req.user.id);
+        const userId = req.user.id;
+
+        // Admins see all meetings
+        if (req.user.role === 'admin') {
+            const meetings = await Meeting.find({});
+            return res.json(meetings);
+        }
+
+        // Return only meetings the user created (chairman) or already joined (participants)
+        const meetings = await Meeting.find({ $or: [ { participants: userId }, { chairman: userId } ] });
+        res.json(meetings);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -230,16 +239,17 @@ app.get('/api/meetings', async (req, res) => {
 
 
 // Create a new meeting
-app.post('/api/meetings', async (req, res) => {
-    console.log('[POST] Received data to create new meeting:', req.body);
-    const meetingData = {
-        ...req.body,
-        // meetingId will be generated from _id by the pre-save hook
-        agenda: ["Call to order", "Approval of previous minutes"],
-        motionQueue: [] // Start with an empty motion queue
-    };
-    const meeting = new Meeting(meetingData);
+app.post('/api/meetings', authMiddleware, async (req, res) => {
     try {
+        console.log('[POST] Received data to create new meeting (user):', req.user.id, req.body);
+        const meetingData = {
+            ...req.body,
+            chairman: req.user.id,
+            participants: [req.user.id],
+            agenda: ["Call to order", "Approval of previous minutes"],
+            motionQueue: []
+        };
+        const meeting = new Meeting(meetingData);
         const newMeeting = await meeting.save();
         console.log('[POST] Successfully saved new meeting:', newMeeting);
         res.status(201).json(newMeeting);
@@ -250,14 +260,19 @@ app.post('/api/meetings', async (req, res) => {
 });
 
 // Delete a meeting
-app.delete('/api/meetings/:meetingId', async (req, res) => {
-    console.log(`[DELETE] Attempting to delete meeting with _id: ${req.params.meetingId}`);
+app.delete('/api/meetings/:meetingId', authMiddleware, async (req, res) => {
+    console.log(`[DELETE] Attempting to delete meeting with _id: ${req.params.meetingId} by user ${req.user.id}`);
     try {
         const meeting = await Meeting.findById(req.params.meetingId);
 
         if (!meeting) {
             console.log(`[DELETE] Meeting with _id: ${req.params.meetingId} not found.`);
             return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        // Only admins or the meeting chairman can delete
+        if (req.user.role !== 'admin' && String(meeting.chairman) !== req.user.id) {
+            return res.status(403).json({ message: 'Unauthorized to delete this meeting' });
         }
 
         await Meeting.findByIdAndDelete(req.params.meetingId);
@@ -275,15 +290,20 @@ app.put('/api/meetings/:meetingId/participants', authMiddleware, async (req, res
     try {
         const { participants } = req.body; // Array of user IDs
         console.log(`[PUT] Updating participants for meeting ${req.params.meetingId}:`, participants);
-        
+
         const meeting = await Meeting.findById(req.params.meetingId);
         if (!meeting) {
             return res.status(404).json({ message: 'Meeting not found' });
         }
-        
+
+        // Only admins or the meeting chairman can update participants
+        if (req.user.role !== 'admin' && String(meeting.chairman) !== req.user.id) {
+            return res.status(403).json({ message: 'Unauthorized to update participants' });
+        }
+
         meeting.participants = participants;
         await meeting.save();
-        
+
         res.json(meeting);
     } catch (error) {
         console.error('[PUT] Error updating participants:', error.message);
@@ -403,14 +423,16 @@ app.post('/api/meetings/:meetingId/motions/:motionIndex/review', authMiddleware,
             return res.status(400).json({ message: 'Invalid action' });
         }
 
-        // Check if user is chairman/admin
-        if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can review motions' });
-        }
-
+        // Fetch the meeting first so we can check whether the requester is the meeting's chairman
         const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
         if (!meeting) {
             return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        // Allow admins, accounts with role 'chairman', or the meeting's recorded chairman (creator)
+        const isMeetingChair = String(meeting.chairman) === req.user.id;
+        if (req.user.role !== 'admin' && req.user.role !== 'chairman' && !isMeetingChair) {
+            return res.status(403).json({ message: 'Unauthorized: Only chairman/admin or meeting owner can review motions' });
         }
 
         const motionIndex = parseInt(req.params.motionIndex);

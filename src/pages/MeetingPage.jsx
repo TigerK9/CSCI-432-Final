@@ -41,7 +41,10 @@ const MeetingPage = () => {
     
     const userRole = localStorage.getItem('currentUserRole');
     const userId = localStorage.getItem('currentUserId');
-    const isChairman = userRole === 'chairman' || userRole === 'admin';
+    // Determine chairman status from the meeting data (meeting.chairman) so
+    // the meeting creator retains chairman permissions regardless of their account role.
+    // Admins keep global chairman privileges.
+    const isChairman = (meetingData && String(meetingData.chairman) === userId) || userRole === 'admin';
     const endedRedirectedRef = useRef(false);
 
     const fetchMeetingData = async () => {
@@ -422,8 +425,8 @@ const MeetingPage = () => {
 
     const currentMotion = meetingData.motionQueue[meetingData.currentMotionIndex];
 
-    // If user is a regular member, show the simplified view
-    if (userRole === 'member') {
+    // If the user is NOT the meeting chairman (and not an admin), show the simplified member view
+    if (!isChairman) {
         return (
             <div id="meeting-page-layout">
                 {showVotingResults && votingResults && (
