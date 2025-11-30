@@ -229,8 +229,13 @@ app.get('/api/meetings', async (req, res) => {
 });
 
 
-// Create a new meeting
-app.post('/api/meetings', async (req, res) => {
+// Create a new meeting (Admin/Chairman only)
+app.post('/api/meetings', authMiddleware, async (req, res) => {
+    // Check if user is chairman/admin
+    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can create meetings' });
+    }
+    
     console.log('[POST] Received data to create new meeting:', req.body);
     const meetingData = {
         ...req.body,
@@ -249,8 +254,13 @@ app.post('/api/meetings', async (req, res) => {
     }
 });
 
-// Delete a meeting
-app.delete('/api/meetings/:meetingId', async (req, res) => {
+// Delete a meeting (Admin/Chairman only)
+app.delete('/api/meetings/:meetingId', authMiddleware, async (req, res) => {
+    // Check if user is chairman/admin
+    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can delete meetings' });
+    }
+    
     console.log(`[DELETE] Attempting to delete meeting with _id: ${req.params.meetingId}`);
     try {
         const meeting = await Meeting.findById(req.params.meetingId);
@@ -270,8 +280,13 @@ app.delete('/api/meetings/:meetingId', async (req, res) => {
     }
 });
 
-// Update meeting participants
+// Update meeting participants (Admin/Chairman only)
 app.put('/api/meetings/:meetingId/participants', authMiddleware, async (req, res) => {
+    // Check if user is chairman/admin
+    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can manage participants' });
+    }
+    
     try {
         const { participants } = req.body; // Array of user IDs
         console.log(`[PUT] Updating participants for meeting ${req.params.meetingId}:`, participants);
@@ -323,8 +338,13 @@ app.post('/api/meetings/join', authMiddleware, async (req, res) => {
     }
 });
 
-// Update Meeting Data
-app.put('/api/meetings/:meetingId', async (req, res) => {
+// Update Meeting Data (Admin/Chairman only)
+app.put('/api/meetings/:meetingId', authMiddleware, async (req, res) => {
+    // Check if user is chairman/admin
+    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can update meetings' });
+    }
+    
     try {
         console.log(`[PUT] Received update for meeting ${req.params.meetingId}:`, req.body);
         const updatedMeeting = await Meeting.findOneAndUpdate(
@@ -463,8 +483,13 @@ app.post('/api/meetings/:meetingId/motions/:motionIndex/review', authMiddleware,
     }
 });
 
-// Start voting on a motion
+// Start voting on a motion (Admin/Chairman only)
 app.post('/api/meetings/:meetingId/start-vote/:motionIndex', authMiddleware, async (req, res) => {
+    // Check if user is chairman/admin
+    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can start votes' });
+    }
+    
     try {
         const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
         if (!meeting) {
@@ -476,8 +501,8 @@ app.post('/api/meetings/:meetingId/start-vote/:motionIndex', authMiddleware, asy
             return res.status(400).json({ message: 'Invalid motion index' });
         }
 
-        // Set voting period (45 seconds)
-        const votingEndsAt = new Date(Date.now() + 45000);
+        // Set voting period (30 seconds)
+        const votingEndsAt = new Date(Date.now() + 30000);
         meeting.motionQueue[motionIndex].status = 'voting';
         meeting.motionQueue[motionIndex].votingEndsAt = votingEndsAt;
         meeting.motionQueue[motionIndex].votes = { aye: 0, no: 0 };
@@ -500,8 +525,13 @@ const determineMotionResult = (votes) => {
     return (votes.aye || 0) > (votes.no || 0) ? 'approved' : 'failed';
 };
 
-// Complete voting on a motion
-app.post('/api/meetings/:meetingId/complete-voting/:motionIndex', async (req, res) => {
+// Complete voting on a motion (Admin/Chairman only)
+app.post('/api/meetings/:meetingId/complete-voting/:motionIndex', authMiddleware, async (req, res) => {
+    // Check if user is chairman/admin
+    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can complete voting' });
+    }
+    
     try {
         const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
         if (!meeting) {
