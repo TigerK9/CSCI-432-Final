@@ -483,7 +483,7 @@ const HomePage = () => {
           <div>New Meeting</div>
         </div>
 
-        {userRole !== 'admin' && userRole !== 'chairman' && (
+        {userRole !== 'admin' && (
           <div className="box new-meeting" onClick={() => setIsJoinModalOpen(true)}>
             <div className="plus"><i className="bi-box-arrow-in-right"></i></div>
             <div>Join Meeting</div>
