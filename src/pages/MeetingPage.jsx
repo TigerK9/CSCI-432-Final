@@ -37,6 +37,7 @@ const MeetingPage = () => {
     const [isCompletingVote, setIsCompletingVote] = useState(false);
     const [votingResults, setVotingResults] = useState(null);
     const [showEndConfirm, setShowEndConfirm] = useState(false);
+    const [notFound, setNotFound] = useState(false);
     
     const userRole = localStorage.getItem('currentUserRole');
     const userId = localStorage.getItem('currentUserId');
@@ -57,6 +58,12 @@ const MeetingPage = () => {
                 // User is not authorized to access this meeting
                 alert('You are not authorized to access this meeting.');
                 navigate('/home');
+                return;
+            }
+            
+            if (response.status === 404) {
+                // Meeting not found (deleted)
+                setNotFound(true);
                 return;
             }
             
@@ -136,7 +143,10 @@ const MeetingPage = () => {
     const activeVoteId = votingMotion?._id || null;
 
     // Setup data fetching and polling
-    useEffect(() => {        
+    useEffect(() => {
+        // Don't fetch or poll if meeting was not found
+        if (notFound) return;
+        
         fetchMeetingData();
         
         // Members poll every 10 seconds
@@ -148,7 +158,7 @@ const MeetingPage = () => {
         return () => {
             if (pollInterval) clearInterval(pollInterval);
         };
-    }, [meetingId, activeVoteId, isChairman]); // Use activeVoteId (string) instead of votingMotion (object)
+    }, [meetingId, activeVoteId, isChairman, notFound]); // Use activeVoteId (string) instead of votingMotion (object)
 
     const handleVotingComplete = async (motion) => {
         if (!motion || !meetingData || isCompletingVote) return;
@@ -429,6 +439,33 @@ const MeetingPage = () => {
             alert('Failed to submit vote. Please try again.');
         }
     };
+
+    if (notFound) {
+        return (
+            <div id="meeting-page-layout">
+                <Taskbar />
+                <div style={{ textAlign: 'center', marginTop: '100px' }}>
+                    <h1>Meeting Not Found</h1>
+                    <p>This meeting may have been deleted or does not exist.</p>
+                    <button 
+                        onClick={() => navigate('/home')} 
+                        style={{ 
+                            marginTop: '20px', 
+                            padding: '10px 20px', 
+                            fontSize: '1rem',
+                            cursor: 'pointer',
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '5px'
+                        }}
+                    >
+                        Go to Home
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (!meetingData) {
         return <div>Loading...</div>;
