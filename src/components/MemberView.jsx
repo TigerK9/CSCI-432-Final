@@ -52,35 +52,36 @@ const MemberView = ({ currentMotion, votingMotion, timeLeft, isProposingMotion, 
                     )}
                     </div>
                 )}
-            </div>
 
-            <div className="member-controls">
-                {!isProposingMotion ? (
-                    <button 
-                        className="vote-button hand"
-                        onClick={() => setIsProposingMotion(true)}>
-                        <i className="bi bi-hand-raised"></i>
-                        Raise Hand
-                    </button>
-                ) : (
-                    <div className="motion-proposal-form">
-                        <input
-                            type="text"
-                            placeholder="Motion Title"
-                            value={proposedMotion.name}
-                            onChange={(e) => setProposedMotion(prev => ({ ...prev, name: e.target.value }))}
-                        />
-                        <textarea
-                            placeholder="Motion Description"
-                            value={proposedMotion.description}
-                            onChange={(e) => setProposedMotion(prev => ({ ...prev, description: e.target.value }))}
-                        />
-                        <div className="proposal-buttons">
-                            <button onClick={handleProposeMotion}>Submit Motion</button>
-                            <button onClick={() => setIsProposingMotion(false)}>Cancel</button>
+                {/* Raise Hand / Propose Motion - centered below motion display */}
+                <div className="member-controls-centered">
+                    {!isProposingMotion ? (
+                        <button 
+                            className="vote-button hand"
+                            onClick={() => setIsProposingMotion(true)}>
+                            <i className="bi bi-hand-raised"></i>
+                            Raise Hand
+                        </button>
+                    ) : (
+                        <div className="motion-proposal-form">
+                            <input
+                                type="text"
+                                placeholder="Motion Title"
+                                value={proposedMotion.name}
+                                onChange={(e) => setProposedMotion(prev => ({ ...prev, name: e.target.value }))}
+                            />
+                            <textarea
+                                placeholder="Motion Description"
+                                value={proposedMotion.description}
+                                onChange={(e) => setProposedMotion(prev => ({ ...prev, description: e.target.value }))}
+                            />
+                            <div className="proposal-buttons">
+                                <button onClick={handleProposeMotion}>Submit Motion</button>
+                                <button onClick={() => setIsProposingMotion(false)}>Cancel</button>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

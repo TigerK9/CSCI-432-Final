@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-const Taskbar = () => {
+const Taskbar = ({ centerContent }) => {
     const navigate = useNavigate();
     return (
         <div className="taskbar">
@@ -10,6 +10,11 @@ const Taskbar = () => {
                     <i className="bi-house"></i>
                 </Link>
             </div>
+            {centerContent && (
+                <div className="taskbar-center">
+                    {centerContent}
+                </div>
+            )}
             <div className="taskbar-right">
                 <Link to="/profile" className="taskbar-icon" title="Profile">
                     <i className="bi-person"></i>
