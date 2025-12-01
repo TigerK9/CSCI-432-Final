@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import '../css/meeting_style.css';
 import '../css/member_view.css';
 import '../css/pending_motions.css';
@@ -50,7 +51,7 @@ const MeetingPage = () => {
     const fetchMeetingData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}`, {
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
             
@@ -176,7 +177,7 @@ const MeetingPage = () => {
             setTimeLeft(0);
             setHasVoted(true);
 
-            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}/complete-voting/${motionIndex}`, {
+            const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}/complete-voting/${motionIndex}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -231,7 +232,7 @@ const MeetingPage = () => {
 
     const saveData = async (newData) => {
         setMeetingData(newData);
-        await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+        await fetch(`${API_BASE_URL}/api/meetings/${meetingId}`, {
             method: 'PUT',
             headers: { 
                 'Content-Type': 'application/json',
@@ -273,7 +274,7 @@ const MeetingPage = () => {
     const handleMotionReview = async (motionIndex, action) => {
         try {
             const response = await fetch(
-                `http://localhost:5002/api/meetings/${meetingId}/motions/${motionIndex}/review`,
+                `${API_BASE_URL}/api/meetings/${meetingId}/motions/${motionIndex}/review`,
                 {
                     method: 'POST',
                     headers: {
@@ -323,7 +324,7 @@ const MeetingPage = () => {
             }
 
             // Send to server first
-            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}/propose-motion`, {
+            const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}/propose-motion`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -361,7 +362,7 @@ const MeetingPage = () => {
 
     const handleStartVote = async (motionIndex) => {
         try {
-            await fetch(`http://localhost:5002/api/meetings/${meetingId}/start-vote/${motionIndex}`, {
+            await fetch(`${API_BASE_URL}/api/meetings/${meetingId}/start-vote/${motionIndex}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -377,7 +378,7 @@ const MeetingPage = () => {
         try {
             const updated = { ...meetingData, ended: true };
             setMeetingData(updated);
-            await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+            await fetch(`${API_BASE_URL}/api/meetings/${meetingId}`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -402,7 +403,7 @@ const MeetingPage = () => {
         try {
             // Submit vote to server
             const motionIndex = meetingData.motionQueue.findIndex(m => m._id === votingMotion._id);
-            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}/vote/${motionIndex}`, {
+            const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}/vote/${motionIndex}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

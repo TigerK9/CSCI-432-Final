@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import Taskbar from '../components/Taskbar';
 import '../css/minutes_style.css'; 
 
@@ -23,7 +24,7 @@ const MinutesPage = () => {
 
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+                const res = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}`, {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
                 

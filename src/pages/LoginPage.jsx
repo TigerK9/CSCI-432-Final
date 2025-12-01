@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import '../css/login_style.css'; // Assuming styles are compatible
 
 /**
@@ -18,7 +19,7 @@ const LoginPage = () => {
         if (!isFormValid) return;
 
         try {
-            const response = await fetch('http://localhost:5002/api/users/login', {
+            const response = await fetch(`${API_BASE_URL}/api/users/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
