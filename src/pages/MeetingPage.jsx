@@ -20,7 +20,6 @@ const MeetingPage = () => {
     const [isAgendaEditing, setIsAgendaEditing] = useState(false);
     const [isMotionQueueEditing, setIsMotionQueueEditing] = useState(false);
     const [showPendingMotions, setShowPendingMotions] = useState(false);
-    const [newAgendaItem, setNewAgendaItem] = useState('');
     const [newMotion, setNewMotion] = useState({ name: '', description: '', creator: '' });
     const [proposedMotion, setProposedMotion] = useState({ 
         name: '', 
@@ -49,7 +48,18 @@ const MeetingPage = () => {
 
     const fetchMeetingData = async () => {
         try {
-            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`);
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            
+            if (response.status === 403) {
+                // User is not authorized to access this meeting
+                alert('You are not authorized to access this meeting.');
+                navigate('/home');
+                return;
+            }
+            
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -271,14 +281,6 @@ const MeetingPage = () => {
         }
     };
 
-    const handleAddAgendaItem = () => {
-        if (newAgendaItem.trim()) {
-            const newData = { ...meetingData, agenda: [...meetingData.agenda, newAgendaItem.trim()] };
-            saveData(newData);
-            setNewAgendaItem('');
-        }
-    };
-
     const handleAddMotionItem = () => {
         if (newMotion.name.trim() && newMotion.creator.trim()) {
             const newData = { ...meetingData, motionQueue: [...meetingData.motionQueue, newMotion] };
@@ -488,9 +490,6 @@ const MeetingPage = () => {
                     meetingData={meetingData}
                     isAgendaEditing={isAgendaEditing}
                     setIsAgendaEditing={setIsAgendaEditing}
-                    newAgendaItem={newAgendaItem}
-                    setNewAgendaItem={setNewAgendaItem}
-                    handleAddAgendaItem={handleAddAgendaItem}
                     handleAgendaNav={handleAgendaNav}
                     saveData={saveData}
                 />

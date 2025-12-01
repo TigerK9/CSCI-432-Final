@@ -360,12 +360,25 @@ app.put('/api/meetings/:meetingId', async (req, res) => {
 });
 
 // --- Endpoints for a single meeting's detailed data ---
-app.get('/api/meetings/:meetingId', async (req, res) => {
+app.get('/api/meetings/:meetingId', authMiddleware, async (req, res) => {
     try {
-        let meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
+        let meeting = await Meeting.findOne({ meetingId: req.params.meetingId })
+            .populate('participants', '_id name email'); // Populate participant details
         if (!meeting) {
             return res.status(404).json({ message: 'Meeting not found' });
         }
+        
+        // Check if user is authorized to access this meeting
+        const userId = req.user.id;
+        const userRole = req.user.role;
+        const isChairman = String(meeting.chairman) === userId;
+        const isParticipant = meeting.participants.some(p => String(p._id) === userId);
+        
+        // Admins, chairman, and participants can access
+        if (userRole !== 'admin' && !isChairman && !isParticipant) {
+            return res.status(403).json({ message: 'You are not authorized to access this meeting' });
+        }
+        
         res.json(meeting);
     } catch (error) {
         res.status(500).json({ message: error.message });

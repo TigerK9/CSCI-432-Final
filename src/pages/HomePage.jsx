@@ -3,7 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import Taskbar from '../components/Taskbar';
 import '../css/home_style.css'; // Assuming styles are compatible
 
-const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting }) => {
+const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting, onJoinMeeting }) => {
+  const [joinCode, setJoinCode] = useState('');
+  const [joinError, setJoinError] = useState('');
+  const [joinLoading, setJoinLoading] = useState(false);
+
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -13,6 +17,9 @@ const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting }) => {
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
+      // Reset join fields when modal opens
+      setJoinCode('');
+      setJoinError('');
     }
 
     return () => {
@@ -40,72 +47,140 @@ const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting }) => {
     onCreateMeeting(newMeeting);
   };
 
+  const handleJoinSubmit = async () => {
+    if (joinCode.length !== 6) {
+      setJoinError('Please enter a 6-character code');
+      return;
+    }
+
+    setJoinLoading(true);
+    setJoinError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5002/api/meetings/join', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ joinCode: joinCode.toUpperCase() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setJoinError(data.message || 'Failed to join meeting');
+        setJoinLoading(false);
+        return;
+      }
+
+      onJoinMeeting(data.meeting);
+      onClose();
+    } catch (error) {
+      console.error('Error joining meeting:', error);
+      setJoinError('Error joining meeting');
+    }
+    setJoinLoading(false);
+  };
+
   return (
     <div className="modal" style={{ display: 'block' }} onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content combined-meeting-modal" onClick={(e) => e.stopPropagation()}>
         <span className="close" onClick={onClose}>&times;</span>
-        <h2>Create a New Meeting</h2>
-        <form id="meetingForm" onSubmit={handleSubmit}>
-          <label htmlFor="meetingName">Meeting Name:</label>
-          <input type="text" id="meetingName" name="meetingName" required />
+        
+        {/* Create New Meeting Section */}
+        <div className="modal-section">
+          <h2>Create a New Meeting</h2>
+          <form id="meetingForm" onSubmit={handleSubmit}>
+            <label htmlFor="meetingName">Meeting Name:</label>
+            <input type="text" id="meetingName" name="meetingName" required />
 
-          <label htmlFor="meetingDescription">Description:</label>
-          <textarea id="meetingDescription" name="meetingDescription" rows="3" placeholder="What is this meeting about?"></textarea>
+            <label htmlFor="meetingDescription">Description:</label>
+            <textarea id="meetingDescription" name="meetingDescription" rows="3" placeholder="What is this meeting about?"></textarea>
 
-          <label htmlFor="meetingDate">Date & Time:</label>
-          <input type="datetime-local" id="meetingDate" name="meetingDate" required />
+            <label htmlFor="meetingDate">Date & Time:</label>
+            <input type="datetime-local" id="meetingDate" name="meetingDate" required />
 
-          <button type="submit">Save Meeting</button>
-        </form>
+            <button type="submit">Create Meeting</button>
+          </form>
+        </div>
+
+        {/* Divider */}
+        <div className="modal-divider">
+          <span>OR</span>
+        </div>
+
+        {/* Join Meeting Section */}
+        <div className="modal-section join-section">
+          <h2>Join a Meeting</h2>
+          <p className="join-modal-description">Enter the 6-character code provided by your chairman</p>
+          <input
+            type="text"
+            className="join-code-input"
+            placeholder="Enter code"
+            value={joinCode}
+            onChange={(e) => { setJoinCode(e.target.value.toUpperCase().slice(0, 6)); setJoinError(''); }}
+            onKeyDown={(e) => e.key === 'Enter' && handleJoinSubmit()}
+            maxLength={6}
+          />
+          {joinError && <p className="join-error">{joinError}</p>}
+          <button className="join-submit-btn" onClick={handleJoinSubmit} disabled={joinLoading}>
+            {joinLoading ? 'Joining...' : 'Join Meeting'}
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-const ParticipantsModal = ({ isOpen, onClose, meetingId, meetingName, participantIds, joinCode, onSave }) => {
+const ParticipantsModal = ({ isOpen, onClose, meetingId, meetingName, initialParticipants, joinCode, onSave }) => {
   const [participants, setParticipants] = useState([]); // Array of { _id, name, email }
   const [editedParticipantIds, setEditedParticipantIds] = useState([]);
+  const [originalParticipantIds, setOriginalParticipantIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [addError, setAddError] = useState('');
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  
+  const currentUserId = localStorage.getItem('currentUserId');
+
+  // Check if changes have been made
+  const hasChanges = () => {
+    if (originalParticipantIds.length !== editedParticipantIds.length) return true;
+    const sortedOriginal = [...originalParticipantIds].sort();
+    const sortedEdited = [...editedParticipantIds].sort();
+    return !sortedOriginal.every((id, index) => id === sortedEdited[index]);
+  };
 
   useEffect(() => {
-    const fetchParticipantInfo = async () => {
-      if (!isOpen) {
-        setParticipants([]);
-        setEditedParticipantIds([]);
-        setEmailInput('');
-        setAddError('');
-        return;
-      }
-      
-      if (!participantIds || participantIds.length === 0) {
-        setParticipants([]);
-        setEditedParticipantIds([]);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const response = await fetch(`http://localhost:5002/api/users/by-ids?ids=${participantIds.join(',')}`);
-        if (response.ok) {
-          const users = await response.json();
-          setParticipants(users);
-          setEditedParticipantIds([...participantIds]);
-        }
-      } catch (error) {
-        console.error('Error fetching participant info:', error);
-      }
-      setLoading(false);
-    };
-
-    fetchParticipantInfo();
-  }, [isOpen, participantIds]);
+    if (!isOpen) {
+      setParticipants([]);
+      setEditedParticipantIds([]);
+      setOriginalParticipantIds([]);
+      setEmailInput('');
+      setAddError('');
+      setShowUnsavedWarning(false);
+      return;
+    }
+    
+    // Use the pre-populated participants directly - no extra fetch needed!
+    if (initialParticipants && initialParticipants.length > 0) {
+      setParticipants(initialParticipants);
+      const ids = initialParticipants.map(p => p._id);
+      setEditedParticipantIds(ids);
+      setOriginalParticipantIds(ids);
+    } else {
+      setParticipants([]);
+      setEditedParticipantIds([]);
+      setOriginalParticipantIds([]);
+    }
+  }, [isOpen, initialParticipants]);
 
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
-        onClose();
+        handleAttemptClose();
       }
     };
 
@@ -116,9 +191,26 @@ const ParticipantsModal = ({ isOpen, onClose, meetingId, meetingName, participan
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, editedParticipantIds, originalParticipantIds]);
 
   if (!isOpen) return null;
+
+  const handleAttemptClose = () => {
+    if (hasChanges()) {
+      setShowUnsavedWarning(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedWarning(false);
+    onClose();
+  };
+
+  const handleKeepEditing = () => {
+    setShowUnsavedWarning(false);
+  };
 
   const handleRemoveParticipant = (userId) => {
     setEditedParticipantIds(editedParticipantIds.filter(id => id !== userId));
@@ -181,14 +273,10 @@ const ParticipantsModal = ({ isOpen, onClose, meetingId, meetingName, participan
     }
   };
 
-  const handleCancel = () => {
-    onClose();
-  };
-
   return (
-    <div className="participants-modal-backdrop" onClick={handleCancel}>
+    <div className="participants-modal-backdrop" onClick={handleAttemptClose}>
       <div className="participants-modal" onClick={(e) => e.stopPropagation()}>
-        <span className="close" onClick={handleCancel}>&times;</span>
+        <span className="close" onClick={handleAttemptClose}>&times;</span>
         <h2>Participants</h2>
         <p className="participants-meeting-name">{meetingName}</p>
         
@@ -218,16 +306,27 @@ const ParticipantsModal = ({ isOpen, onClose, meetingId, meetingName, participan
           {loading ? (
             <p className="no-participants">Loading...</p>
           ) : participants.length > 0 ? (
-            participants.filter(p => editedParticipantIds.includes(p._id)).map((participant) => (
+            participants
+              .filter(p => editedParticipantIds.includes(p._id))
+              .sort((a, b) => {
+                // Current user always first
+                if (a._id === currentUserId) return -1;
+                if (b._id === currentUserId) return 1;
+                // Rest sorted alphabetically by name
+                return a.name.localeCompare(b.name);
+              })
+              .map((participant) => (
               <div key={participant._id} className="participant-item">
                 <i className="bi-person-circle"></i>
                 <div className="participant-info">
                   <span className="participant-name">{participant.name}</span>
                   <span className="participant-email">{participant.email}</span>
                 </div>
-                <button className="remove-participant-btn" onClick={() => handleRemoveParticipant(participant._id)}>
-                  <i className="bi-x"></i>
-                </button>
+                {participant._id !== currentUserId && (
+                  <button className="remove-participant-btn" onClick={() => handleRemoveParticipant(participant._id)}>
+                    <i className="bi-x"></i>
+                  </button>
+                )}
               </div>
             ))
           ) : (
@@ -235,96 +334,21 @@ const ParticipantsModal = ({ isOpen, onClose, meetingId, meetingName, participan
           )}
         </div>
         <div className="participants-modal-buttons">
-          <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
+          <button className="cancel-btn" onClick={handleAttemptClose}>Cancel</button>
           <button className="save-btn" onClick={handleSave}>Save</button>
         </div>
       </div>
-    </div>
-  );
-};
 
-const JoinMeetingModal = ({ isOpen, onClose, onJoin }) => {
-  const [joinCode, setJoinCode] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      setJoinCode('');
-      setError('');
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  const handleSubmit = async () => {
-    if (joinCode.length !== 6) {
-      setError('Please enter a 6-character code');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5002/api/meetings/join', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ joinCode: joinCode.toUpperCase() }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || 'Failed to join meeting');
-        setLoading(false);
-        return;
-      }
-
-      onJoin(data.meeting);
-      onClose();
-    } catch (error) {
-      console.error('Error joining meeting:', error);
-      setError('Error joining meeting');
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="modal" style={{ display: 'block' }} onClick={onClose}>
-      <div className="modal-content join-modal-content" onClick={(e) => e.stopPropagation()}>
-        <span className="close" onClick={onClose}>&times;</span>
-        <h2>Join a Meeting</h2>
-        <p className="join-modal-description">Enter the 6-character code provided by your chairman</p>
-        <input
-          type="text"
-          className="join-code-input"
-          placeholder="Enter code"
-          value={joinCode}
-          onChange={(e) => { setJoinCode(e.target.value.toUpperCase().slice(0, 6)); setError(''); }}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-          maxLength={6}
-        />
-        {error && <p className="join-error">{error}</p>}
-        <button className="join-submit-btn" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Joining...' : 'Join Meeting'}
-        </button>
-      </div>
+      {showUnsavedWarning && (
+        <div className="unsaved-warning-modal" onClick={(e) => e.stopPropagation()}>
+          <h3>Unsaved Changes</h3>
+          <p>You have unsaved changes. Are you sure you want to close without saving?</p>
+          <div className="unsaved-warning-buttons">
+            <button className="keep-editing-btn" onClick={handleKeepEditing}>Keep Editing</button>
+            <button className="discard-btn" onClick={handleDiscardChanges}>Discard Changes</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -332,9 +356,8 @@ const JoinMeetingModal = ({ isOpen, onClose, onJoin }) => {
 const HomePage = () => {
   const [meetings, setMeetings] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, meetingId: null, meetingName: '' });
-  const [participantsModal, setParticipantsModal] = useState({ show: false, meetingId: null, meetingName: '', participantIds: [], joinCode: '' });
+  const [participantsModal, setParticipantsModal] = useState({ show: false, meetingId: null, meetingName: '', initialParticipants: [], joinCode: '' });
   const userRole = localStorage.getItem('currentUserRole');
   const currentUserId = localStorage.getItem('currentUserId');
   const navigate = useNavigate();
@@ -411,17 +434,48 @@ const HomePage = () => {
     }
   };
 
-  const handlePeopleClick = (e, meeting) => {
+  const handlePeopleClick = async (e, meeting) => {
     e.preventDefault();
     e.stopPropagation();
-    const participantIds = meeting.participants || [];
-    setParticipantsModal({ 
-      show: true, 
-      meetingId: meeting._id, 
-      meetingName: meeting.name, 
-      participantIds,
-      joinCode: meeting.joinCode || ''
-    });
+    
+    // Fetch fresh meeting data with populated participants (name, email included)
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5002/api/meetings/${meeting.meetingId}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      
+      if (response.ok) {
+        const freshMeeting = await response.json();
+        // participants now come with _id, name, email populated from backend
+        setParticipantsModal({ 
+          show: true, 
+          meetingId: meeting._id, 
+          meetingName: freshMeeting.name, 
+          initialParticipants: freshMeeting.participants || [],
+          joinCode: freshMeeting.joinCode || ''
+        });
+      } else {
+        // Fallback to cached data if fetch fails
+        setParticipantsModal({ 
+          show: true, 
+          meetingId: meeting._id, 
+          meetingName: meeting.name, 
+          initialParticipants: meeting.participants || [],
+          joinCode: meeting.joinCode || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching meeting data:', error);
+      // Fallback to cached data
+      setParticipantsModal({ 
+        show: true, 
+        meetingId: meeting._id, 
+        meetingName: meeting.name, 
+        initialParticipants: meeting.participants || [],
+        joinCode: meeting.joinCode || ''
+      });
+    }
   };
 
   const handleSaveParticipants = (updatedParticipantIds) => {
@@ -482,19 +536,13 @@ const HomePage = () => {
           <div className="plus">+</div>
           <div>New Meeting</div>
         </div>
-
-        {userRole !== 'admin' && (
-          <div className="box new-meeting" onClick={() => setIsJoinModalOpen(true)}>
-            <div className="plus"><i className="bi-box-arrow-in-right"></i></div>
-            <div>Join Meeting</div>
-          </div>
-        )}
       </div>
 
       <NewMeetingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onCreateMeeting={handleCreateMeeting}
+        onJoinMeeting={handleJoinMeeting}
       />
 
       {deleteConfirm.show && (
@@ -512,18 +560,12 @@ const HomePage = () => {
 
       <ParticipantsModal
         isOpen={participantsModal.show}
-        onClose={() => setParticipantsModal({ show: false, meetingId: null, meetingName: '', participantIds: [], joinCode: '' })}
+        onClose={() => setParticipantsModal({ show: false, meetingId: null, meetingName: '', initialParticipants: [], joinCode: '' })}
         meetingId={participantsModal.meetingId}
         meetingName={participantsModal.meetingName}
-        participantIds={participantsModal.participantIds}
+        initialParticipants={participantsModal.initialParticipants}
         joinCode={participantsModal.joinCode}
         onSave={handleSaveParticipants}
-      />
-
-      <JoinMeetingModal
-        isOpen={isJoinModalOpen}
-        onClose={() => setIsJoinModalOpen(false)}
-        onJoin={handleJoinMeeting}
       />
     </div>
   );
