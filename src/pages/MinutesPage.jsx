@@ -20,7 +20,10 @@ const MinutesPage = () => {
             }
 
             try {
-                const res = await fetch(`http://localhost:5002/api/meetings/${meetingId}`);
+                const token = localStorage.getItem('token');
+                const res = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
                 if (!res.ok) throw new Error('Failed to fetch meeting');
                 const data = await res.json();
 
