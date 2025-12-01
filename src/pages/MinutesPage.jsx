@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Taskbar from '../components/Taskbar';
 import '../css/minutes_style.css'; 
 
@@ -7,9 +7,11 @@ const MINUTES_STORAGE_KEY = 'ronr-minutesData';
 
 const MinutesPage = () => {
     const { meetingId } = useParams();
+    const navigate = useNavigate();
     const [motions, setMotions] = useState([]);
     const [activeMotionId, setActiveMotionId] = useState(null);
     const [meetingTitle, setMeetingTitle] = useState('Q4 Session');
+    const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
         const fetchMeetingMinutes = async () => {
@@ -24,6 +26,18 @@ const MinutesPage = () => {
                 const res = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
+                
+                if (res.status === 404) {
+                    setNotFound(true);
+                    return;
+                }
+                
+                if (res.status === 403) {
+                    alert('You are not authorized to view these minutes.');
+                    navigate('/home');
+                    return;
+                }
+                
                 if (!res.ok) throw new Error('Failed to fetch meeting');
                 const data = await res.json();
 
@@ -120,6 +134,35 @@ const MinutesPage = () => {
     };
 
     const activeMotion = motions.find(m => m.id === activeMotionId);
+
+    if (notFound) {
+        return (
+            <div className="minutes-page">
+                <Taskbar />
+                <div className="page-content">
+                    <div style={{ textAlign: 'center', marginTop: '100px' }}>
+                        <h1>Meeting Not Found</h1>
+                        <p>This meeting may have been deleted or does not exist.</p>
+                        <button 
+                            onClick={() => navigate('/home')} 
+                            style={{ 
+                                marginTop: '20px', 
+                                padding: '10px 20px', 
+                                fontSize: '1rem',
+                                cursor: 'pointer',
+                                backgroundColor: '#007bff',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px'
+                            }}
+                        >
+                            Go to Home
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="minutes-page">

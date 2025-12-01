@@ -285,13 +285,8 @@ app.delete('/api/meetings/:meetingId', authMiddleware, async (req, res) => {
     }
 });
 
-// Update meeting participants (Admin/Chairman only)
+// Update meeting participants (Admin or meeting chairman only)
 app.put('/api/meetings/:meetingId/participants', authMiddleware, async (req, res) => {
-    // Check if user is chairman/admin
-    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can manage participants' });
-    }
-    
     try {
         const { participants } = req.body; // Array of user IDs
         console.log(`[PUT] Updating participants for meeting ${req.params.meetingId}:`, participants);
@@ -348,14 +343,21 @@ app.post('/api/meetings/join', authMiddleware, async (req, res) => {
     }
 });
 
-// Update Meeting Data (Admin/Chairman only)
+// Update Meeting Data (Admin or meeting chairman only)
 app.put('/api/meetings/:meetingId', authMiddleware, async (req, res) => {
-    // Check if user is chairman/admin
-    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can update meetings' });
-    }
-    
     try {
+        // First find the meeting to check chairman
+        const existingMeeting = await Meeting.findOne({ meetingId: req.params.meetingId });
+        
+        // If meeting exists, check authorization
+        if (existingMeeting) {
+            const isAdmin = req.user.role === 'admin';
+            const isMeetingChairman = String(existingMeeting.chairman) === req.user.id;
+            if (!isAdmin && !isMeetingChairman) {
+                return res.status(403).json({ message: 'Unauthorized: Only the meeting chairman or admin can update this meeting' });
+            }
+        }
+        
         console.log(`[PUT] Received update for meeting ${req.params.meetingId}:`, req.body);
         const updatedMeeting = await Meeting.findOneAndUpdate(
             { meetingId: req.params.meetingId },
@@ -508,17 +510,19 @@ app.post('/api/meetings/:meetingId/motions/:motionIndex/review', authMiddleware,
     }
 });
 
-// Start voting on a motion (Admin/Chairman only)
+// Start voting on a motion (Admin or meeting chairman only)
 app.post('/api/meetings/:meetingId/start-vote/:motionIndex', authMiddleware, async (req, res) => {
-    // Check if user is chairman/admin
-    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can start votes' });
-    }
-    
     try {
         const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
         if (!meeting) {
             return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        // Check if user is admin or the meeting's chairman
+        const isAdmin = req.user.role === 'admin';
+        const isMeetingChairman = String(meeting.chairman) === req.user.id;
+        if (!isAdmin && !isMeetingChairman) {
+            return res.status(403).json({ message: 'Unauthorized: Only the meeting chairman or admin can start votes' });
         }
 
         const motionIndex = parseInt(req.params.motionIndex);
@@ -550,17 +554,19 @@ const determineMotionResult = (votes) => {
     return (votes.aye || 0) > (votes.no || 0) ? 'approved' : 'failed';
 };
 
-// Complete voting on a motion (Admin/Chairman only)
+// Complete voting on a motion (Admin or meeting chairman only)
 app.post('/api/meetings/:meetingId/complete-voting/:motionIndex', authMiddleware, async (req, res) => {
-    // Check if user is chairman/admin
-    if (req.user.role !== 'chairman' && req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Unauthorized: Only chairman/admin can complete voting' });
-    }
-    
     try {
         const meeting = await Meeting.findOne({ meetingId: req.params.meetingId });
         if (!meeting) {
             return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        // Check if user is admin or the meeting's chairman
+        const isAdmin = req.user.role === 'admin';
+        const isMeetingChairman = String(meeting.chairman) === req.user.id;
+        if (!isAdmin && !isMeetingChairman) {
+            return res.status(403).json({ message: 'Unauthorized: Only the meeting chairman or admin can complete voting' });
         }
 
         const motionIndex = parseInt(req.params.motionIndex);
