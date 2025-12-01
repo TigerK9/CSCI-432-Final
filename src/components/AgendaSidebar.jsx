@@ -73,7 +73,9 @@ const AgendaSidebar = ({
                             onKeyDown={(e) => e.key === 'Enter' && handleLocalAdd()}
                             style={{ width: 'calc(100% - 10px)', marginTop: '10px' }} 
                         />
-                        <button className="sidebar-btn" onClick={handleLocalAdd}>Add Item</button>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                            <button className="sidebar-btn" onClick={handleLocalAdd} style={{ width: 'auto', padding: '8px 24px', marginTop: '0' }}>Add Item</button>
+                        </div>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '12px' }}>
                             <button
                                 className="sidebar-btn"

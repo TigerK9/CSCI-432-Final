@@ -40,6 +40,33 @@
     right: 16px;
     z-index: 1000;
 }
+.taskbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 1rem;
+}
+.meeting-header-display {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.meeting-name-display {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+.meeting-code-display {
+    background: rgba(0, 0, 0, 0.305);
+    padding: 6px 16px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+.meeting-code-display strong {
+    font-size: 1rem;
+    letter-spacing: 2px;
+}
 /* ... (rest of taskbar styles are unchanged) ... */
 .taskbar-icon {
     color: white;
@@ -107,8 +134,10 @@
 .center-content {
     /* Center content now flows normally within the main-container's padding */
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: center;
+    padding-top: 40px;
     height: 100%; 
     min-width: 300px !important; 
     flex-grow: 1 !important; 
@@ -310,12 +339,17 @@
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 600px;
+    max-height: 700px;
+    overflow-y: auto;
     width: 100%;
     text-align: center;
 }
 .current-motion-box h3 {
     margin-top: 0;
     font-size: 1.5em;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 .current-motion-box p {
     font-size: 1.1em;

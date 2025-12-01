@@ -2,18 +2,28 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
     padding: 20px;
-    height: calc(100vh - 120px);
+    padding-top: 100px; /* Space below fixed taskbar */
+    min-height: calc(100vh - 60px);
+    box-sizing: border-box;
 }
 
 .current-motion-box {
     width: 80%;
     max-width: 800px;
+    max-height: 680px;
+    overflow-y: auto;
     background-color: white;
     border-radius: 8px;
     padding: 20px;
-    margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.current-motion-box h3 {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .voting-section {
@@ -77,8 +87,21 @@
     max-width: 800px;
 }
 
+.member-controls-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.member-controls-centered .motion-proposal-form {
+    width: 100%;
+}
+
 .motion-proposal-form {
-    background-color: white;
+    background-color: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);

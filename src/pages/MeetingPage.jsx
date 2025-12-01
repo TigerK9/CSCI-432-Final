@@ -46,6 +46,7 @@ const MeetingPage = () => {
     // Admins keep global chairman privileges.
     const isChairman = (meetingData && String(meetingData.chairman) === userId) || userRole === 'admin';
     const endedRedirectedRef = useRef(false);
+    const lastVotingMotionIdRef = useRef(null);
 
     const fetchMeetingData = async () => {
         try {
@@ -89,6 +90,9 @@ const MeetingPage = () => {
             // Check for active voting motion
             const foundVotingMotion = data.motionQueue.find(m => m.status === 'voting');
             if (foundVotingMotion) {
+                // Track the voting motion ID in a ref so we can detect when it completes
+                lastVotingMotionIdRef.current = foundVotingMotion._id;
+                
                 // Only update state if voting motion changed (by ID) to prevent re-render loops
                 setVotingMotion(prev => {
                     if (!prev || prev._id !== foundVotingMotion._id) {
@@ -123,8 +127,27 @@ const MeetingPage = () => {
                     }
                 }
             } else {
-                // No voting motion found, clear it if we had one
-                setVotingMotion(prev => prev ? null : prev);
+                // No voting motion found - check if we just had one that completed
+                if (lastVotingMotionIdRef.current) {
+                    // Find the motion that was voting and is now completed
+                    const completedMotion = data.motionQueue.find(m => 
+                        m._id === lastVotingMotionIdRef.current && 
+                        (m.status === 'approved' || m.status === 'failed' || m.status === 'tied' || m.status === 'no-votes')
+                    );
+                    
+                    if (completedMotion) {
+                        // Show voting results to everyone (members and chairman)
+                        setVotingResults(completedMotion);
+                        setShowVotingResults(true);
+                        // Clean up localStorage
+                        localStorage.removeItem(`voted-${meetingId}-${lastVotingMotionIdRef.current}`);
+                        // Clear the ref so we don't show results again
+                        lastVotingMotionIdRef.current = null;
+                    }
+                }
+                // Clear the voting motion state
+                setVotingMotion(null);
+                setTimeLeft(null);
             }
         } catch (error) {
             console.error("Failed to fetch meeting data:", error);
@@ -216,7 +239,8 @@ const MeetingPage = () => {
         if (timeLeft === null || !votingMotion) return;
 
         if (timeLeft <= 0) {
-            if (votingMotion.status === 'voting') {
+            // Only chairman should complete the vote - members wait for polling to update
+            if (isChairman && votingMotion.status === 'voting') {
                 handleVotingComplete(votingMotion);
             }
             return;
@@ -226,8 +250,8 @@ const MeetingPage = () => {
             setTimeLeft(prev => (prev !== null ? Math.max(0, prev - 1000) : null));
         }, 1000);
 
-        return () => clearInterval(timer);
-    }, [timeLeft, votingMotion, meetingData, meetingId]);
+        return () => clearTimeout(timer);
+    }, [timeLeft, votingMotion, meetingData, meetingId, isChairman]);
 
     const saveData = async (newData) => {
         setMeetingData(newData);
@@ -487,7 +511,7 @@ const MeetingPage = () => {
                         }}
                     />
                 )}
-                <Taskbar />
+                <Taskbar centerContent={<span className="meeting-name-display">{meetingData?.name}</span>} />
                 <MemberView 
                     currentMotion={currentMotion}
                     votingMotion={votingMotion}
@@ -537,7 +561,12 @@ const MeetingPage = () => {
                     onClose={() => setShowPendingMotions(false)}
                 />
             )}
-            <Taskbar />
+            <Taskbar centerContent={
+                <span className="meeting-header-display">
+                    <span className="meeting-name-display">{meetingData?.name}</span>
+                    {meetingData?.joinCode && <span className="meeting-code-display">Code: <strong>{meetingData.joinCode}</strong></span>}
+                </span>
+            } />
             {/* End Meeting button moved to a fixed bottom-right position so it isn't inside the sidebar */}
             <div className="main-container">
                 <AgendaSidebar
