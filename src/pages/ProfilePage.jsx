@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import Taskbar from '../components/Taskbar';
 import { checkAuthAndRedirect, getValidToken } from '../utils/auth';
 import '../css/profileEditor_style.css'; 
@@ -20,7 +21,7 @@ const ProfilePage = () => {
             if (!token) return;
             
             try {
-                const response = await fetch('http://localhost:5002/api/profile', {
+                const response = await fetch(`${API_BASE_URL}/api/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!response.ok) throw new Error('Failed to fetch profile');
@@ -47,7 +48,7 @@ const ProfilePage = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:5002/api/profile', {
+            const response = await fetch(`${API_BASE_URL}/api/profile`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

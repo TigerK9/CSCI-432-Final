@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import Taskbar from '../components/Taskbar';
 import '../css/home_style.css'; // Assuming styles are compatible
 
@@ -58,7 +59,7 @@ const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting, onJoinMeeting }) =>
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5002/api/meetings/join', {
+      const response = await fetch(`${API_BASE_URL}/api/meetings/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -229,7 +230,7 @@ const ParticipantsModal = ({ isOpen, onClose, meetingId, meetingName, initialPar
     }
 
     try {
-      const response = await fetch(`http://localhost:5002/api/users/by-email/${encodeURIComponent(emailInput.trim())}`);
+      const response = await fetch(`${API_BASE_URL}/api/users/by-email/${encodeURIComponent(emailInput.trim())}`);
       if (!response.ok) {
         setAddError('User not found');
         return;
@@ -255,7 +256,7 @@ const ParticipantsModal = ({ isOpen, onClose, meetingId, meetingName, initialPar
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}/participants`, {
+      const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}/participants`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -366,7 +367,7 @@ const HomePage = () => {
     const fetchMeetings = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5002/api/meetings', {
+        const response = await fetch(`${API_BASE_URL}/api/meetings`, {
           headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
         if (!response.ok) {
@@ -386,7 +387,7 @@ const HomePage = () => {
   const handleCreateMeeting = async (newMeeting) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5002/api/meetings', {
+      const response = await fetch(`${API_BASE_URL}/api/meetings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
         body: JSON.stringify(newMeeting),
@@ -418,7 +419,7 @@ const HomePage = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}`, {
         method: 'DELETE',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
@@ -441,7 +442,7 @@ const HomePage = () => {
     // Fetch fresh meeting data with populated participants (name, email included)
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5002/api/meetings/${meeting.meetingId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/meetings/${meeting.meetingId}`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       

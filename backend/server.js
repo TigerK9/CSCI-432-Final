@@ -9,7 +9,25 @@ const authMiddleware = require('./auth');
 const app = express();
 
 // Middleware
-app.use(cors()); // Allow requests from your React app
+// Configure CORS to allow requests from frontend (local dev and production)
+const allowedOrigins = [
+    'http://localhost:5173',  // Vite dev server
+    'http://localhost:4173',  // Vite preview
+    process.env.FRONTEND_URL  // Production Netlify URL
+].filter(Boolean);
+
+app.use(cors({
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(null, true); // Allow all for now, restrict later if needed
+    },
+    credentials: true,
+    maxAge: 86400  // Cache preflight for 24 hours
+}));
 app.use(express.json()); // To parse JSON request bodies
 
 // --- MongoDB Connection ---

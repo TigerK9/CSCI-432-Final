@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import '../css/signup_style.css'; 
 
 const SignupPage = () => {
@@ -15,7 +16,7 @@ const SignupPage = () => {
         if (!isFormValid) return;
 
         try {
-            const response = await fetch('http://localhost:5002/api/users/signup', {
+            const response = await fetch(`${API_BASE_URL}/api/users/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password }),
