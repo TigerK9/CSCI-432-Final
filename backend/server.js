@@ -672,6 +672,6 @@ app.post('/api/meetings/:meetingId/vote/:motionIndex', authMiddleware, async (re
 
 
 const PORT = process.env.PORT || 5002;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
 });
