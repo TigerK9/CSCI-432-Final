@@ -1,49 +1,134 @@
-/* Custom styles to match the provided gradient and ensure font consistency */
+:root {
+  /* Defined variables for easy maintenance */
+  --color-primary: #8D9D90;
+  --color-primary-hover: #667b6a;
+  --color-gradient-start: #878E76;
+  --color-gradient-end: #BBDB9B;
+  --color-text-dark: #1f2937;
+  --color-text-muted: #4b5563;
+  --color-border: #d1d5db;
+  --font-family: 'Inter', sans-serif;
+  --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-    font-family: 'Inter', sans-serif;
-}
-/* Custom gradient colors from template */
-.bg-custom-gradient {
-    background: linear-gradient(45deg, #878E76, #BBDB9B);
-}
-/* Custom button and link colors from template */
-.btn-primary {
-    background-color: #8D9D90; /* Default color */
-}
-.btn-primary:hover {
-    background-color: #667b6a; /* Hover color */
+  font-family: var(--font-family);
+  background-color: #f3f4f6;
 }
 
-/* --- Custom Validation Styles --- */
-/* This class applies the hover color when validation passes */
-.btn-valid-state {
-    background-color: #667b6a;
-    cursor: pointer;
-    opacity: 1 !important; /* Ensure it's fully visible when active */
-    /* Re-enable hover effect for valid state */
-    pointer-events: auto !important; 
-}
-/* This class visually indicates the button is disabled */
-.btn-disabled-state {
-    opacity: 0.5;
-    cursor: not-allowed;
-    /* Override the hover behavior for the disabled state */
-    pointer-events: none; /* Prevents :hover styles when disabled */
-    /* Ensure the background is the default when disabled, even on hover */
-    background-color: #8D9D90; 
+/* --- Layout --- */
+.signup-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  /* Custom Gradient */
+  background: linear-gradient(135deg, var(--color-gradient-start), var(--color-gradient-end));
 }
 
-.text-link-color {
-    color: #8D9D90;
+.signup-card {
+  background: white;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-soft);
 }
-/* Overriding default focus ring for inputs */
-.input-focus:focus {
-     border-color: #667eea; /* Matches the original focus color */
-     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+
+.signup-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
 }
-.divider-line {
-    content: "";
-    flex: 1;
-    border-bottom: 1px solid #ccc;
-    margin: 0 0.75rem;
+
+/* --- Form Elements --- */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Focus State - Matched to your theme instead of the default blue */
+.form-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(141, 157, 144, 0.3); /* Transparent version of primary */
+}
+
+/* --- Buttons --- */
+.btn-submit {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  font-size: 1.125rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Enabled State Hover */
+.btn-submit:not(:disabled):hover {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-submit:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Disabled State - Handled via native attribute */
+.btn-submit:disabled {
+  background-color: var(--color-primary);
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --- Footer Links --- */
+.signup-footer {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.signup-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+  color: var(--color-primary-hover);
 }

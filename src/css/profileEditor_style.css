@@ -1,43 +1,47 @@
-/* This wrapper will now handle the page layout, leaving the global `body` style alone. */
-.profile-page-wrapper {
-    font-family: Arial, sans-serif;
+:root {
+    /* CONSISTENT THEME VARIABLES */
+    --color-primary: #8D9D90;
+    --color-primary-hover: #667b6a;
+    --color-gradient-start: #878E76;
+    --color-gradient-end: #BBDB9B;
+    --color-text-dark: #1f2937;
+    --color-text-muted: #6b7280;
+    --color-border: #d1d5db;
+    --font-family: 'Inter', sans-serif;
+    --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: var(--font-family);
     margin: 0;
-    background-color: #878E76; /* Background color */
+}
+
+/* Page Layout */
+.profile-page-wrapper {
+    background: linear-gradient(135deg, var(--color-gradient-start), var(--color-gradient-end));
     display: flex;
-    flex-direction: column; /* Arrange content vertically */
+    flex-direction: column;
     min-height: 100vh;
     padding: 16px;
     box-sizing: border-box;
 }
 
+/* Taskbar adjustments */
 .taskbar {
-    background-color: #555;
+    /* Kept your existing structure but updated colors if needed */
+    background-color: rgba(31, 41, 55, 0.95); /* Darker, slightly transparent */
     color: white;
     padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 8px; /* This will round the corners */
-    position: fixed; /* Makes the taskbar stick to the viewport */
-    top: 16px; /* Pushed down by the body's padding */
-    left: 16px; /* Pushed from the left by the body's padding */
-    right: 16px; /* Pushed from the right by the body's padding */
-    z-index: 1000; /* Ensures the taskbar stays on top of other content */
-}
-
-.taskbar-icon {
-    color: white;
-    text-decoration: none;
-    font-size: 24px;
-    padding: 5px;
-}
-
-.taskbar-left .taskbar-icon {
-    margin-right: 15px;
-}
-
-.taskbar-right .taskbar-icon {
-    margin-left: 15px;
+    border-radius: 8px;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
 }
 
 .content-area {
@@ -46,51 +50,51 @@
     justify-content: center;
     align-items: center;
     padding: 20px;
-    margin-top: 64px; /* Adjust this value to the taskbar's height to prevent content overlap */
+    margin-top: 80px; /* Space for fixed taskbar */
 }
 
+/* Main Card Style */
 .profile-editor-box {
-    background-color: #D9D9D9;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-soft);
     display: flex;
-    gap: 30px;
-    max-width: 800px;
+    gap: 40px; /* Space between avatar and inputs */
+    max-width: 900px;
     width: 100%;
 }
 
+/* Left Column: Avatar */
 .profile-picture-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    justify-content: flex-start;
+    min-width: 200px;
 }
 
 .profile-picture-placeholder {
-    width: 150px;
-    height: 150px;
-    background-color: #aaa;
+    width: 180px;
+    height: 180px;
+    background-color: var(--color-primary); /* Matches theme */
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
-    font-size: 14px;
-    text-align: center;
-    overflow: hidden;
+    font-size: 5rem; /* Moved from inline style */
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border: 4px solid white; /* clean ring effect */
+    outline: 2px solid var(--color-primary);
 }
 
-.profile-picture-placeholder img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
+/* Right Column: Inputs */
 .profile-input-fields {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
     flex-grow: 1;
 }
 
@@ -100,42 +104,84 @@
 }
 
 .input-group label {
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--color-text-dark);
+    font-size: 0.95rem;
 }
 
-.input-group input[type="text"],
-.input-group input[type="email"],
-.input-group input[type="tel"] {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
+/* Modern Input Styles */
+.input-group input {
+    padding: 12px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
     width: 100%;
     box-sizing: border-box;
+    transition: all 0.2s ease;
+    outline: none;
+    color: var(--color-text-dark);
 }
 
-.saved-data {
-    font-weight: normal;
-    margin-left: 8px;
-    color: #333;
+.input-group input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(141, 157, 144, 0.3);
 }
 
-/* Styling for the Save button container (moved from inline) */
+/* Visual cue for Read-Only fields */
+.input-group input:read-only {
+    background-color: #f3f4f6;
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+}
+
+/* Buttons */
 .button-container {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end; /* Aligns button to right */
+    margin-top: 10px;
 }
 
-/* Styling for the Save button itself (moved from inline) */
 .save-button {
-    background-color: #4CAF50;
+    background-color: var(--color-primary);
     color: white;
-    padding: 10px 15px;
+    padding: 12px 24px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 16px;
-    width: auto;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.save-button:hover {
+    background-color: var(--color-primary-hover);
+    transform: translateY(-1px);
+}
+
+.save-button:active {
+    transform: translateY(0);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .profile-editor-box {
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .profile-picture-section {
+        min-width: auto;
+        margin-bottom: 20px;
+    }
+    
+    .button-container {
+        justify-content: stretch;
+    }
+    
+    .save-button {
+        width: 100%;
+    }
 }

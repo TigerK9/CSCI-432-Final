@@ -20,7 +20,6 @@ const MeetingPage = () => {
     const [isAgendaEditing, setIsAgendaEditing] = useState(false);
     const [isMotionQueueEditing, setIsMotionQueueEditing] = useState(false);
     const [showPendingMotions, setShowPendingMotions] = useState(false);
-    const [newAgendaItem, setNewAgendaItem] = useState('');
     const [newMotion, setNewMotion] = useState({ name: '', description: '', creator: '' });
     const [proposedMotion, setProposedMotion] = useState({ 
         name: '', 
@@ -41,12 +40,26 @@ const MeetingPage = () => {
     
     const userRole = localStorage.getItem('currentUserRole');
     const userId = localStorage.getItem('currentUserId');
-    const isChairman = userRole === 'chairman' || userRole === 'admin';
+    // Determine chairman status from the meeting data (meeting.chairman) so
+    // the meeting creator retains chairman permissions regardless of their account role.
+    // Admins keep global chairman privileges.
+    const isChairman = (meetingData && String(meetingData.chairman) === userId) || userRole === 'admin';
     const endedRedirectedRef = useRef(false);
 
     const fetchMeetingData = async () => {
         try {
-            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`);
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            
+            if (response.status === 403) {
+                // User is not authorized to access this meeting
+                alert('You are not authorized to access this meeting.');
+                navigate('/home');
+                return;
+            }
+            
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -280,14 +293,6 @@ const MeetingPage = () => {
         }
     };
 
-    const handleAddAgendaItem = () => {
-        if (newAgendaItem.trim()) {
-            const newData = { ...meetingData, agenda: [...meetingData.agenda, newAgendaItem.trim()] };
-            saveData(newData);
-            setNewAgendaItem('');
-        }
-    };
-
     const handleAddMotionItem = () => {
         if (newMotion.name.trim() && newMotion.creator.trim()) {
             const newData = { ...meetingData, motionQueue: [...meetingData.motionQueue, newMotion] };
@@ -431,8 +436,8 @@ const MeetingPage = () => {
 
     const currentMotion = meetingData.motionQueue[meetingData.currentMotionIndex];
 
-    // If user is a regular member, show the simplified view
-    if (userRole === 'member') {
+    // If the user is NOT the meeting chairman (and not an admin), show the simplified member view
+    if (!isChairman) {
         return (
             <div id="meeting-page-layout">
                 {showVotingResults && votingResults && (
@@ -502,9 +507,6 @@ const MeetingPage = () => {
                     meetingData={meetingData}
                     isAgendaEditing={isAgendaEditing}
                     setIsAgendaEditing={setIsAgendaEditing}
-                    newAgendaItem={newAgendaItem}
-                    setNewAgendaItem={setNewAgendaItem}
-                    handleAddAgendaItem={handleAddAgendaItem}
                     handleAgendaNav={handleAgendaNav}
                     saveData={saveData}
                 />
