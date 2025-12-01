@@ -169,7 +169,8 @@ const MeetingPage = () => {
             const response = await fetch(`http://localhost:5002/api/meetings/${meetingId}/complete-voting/${motionIndex}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
 
@@ -179,17 +180,10 @@ const MeetingPage = () => {
             setVotingResults(data.motion);
             setShowVotingResults(true);
             
-            // Reset states after showing results
-            setTimeout(() => {
-                setShowVotingResults(false);
-                // Clean up localStorage for the completed motion
-                localStorage.removeItem(`voted-${meetingId}-${motion._id}`);
-
-                setVotingResults(null);
-                setVotingMotion(null);
-                setTimeLeft(null);
-                fetchMeetingData(); // Update with latest data
-            }, 5000);
+            // Clean up localStorage for the completed motion
+            localStorage.removeItem(`voted-${meetingId}-${motion._id}`);
+            setVotingMotion(null);
+            setTimeLeft(null);
 
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to complete voting');
@@ -229,7 +223,10 @@ const MeetingPage = () => {
         setMeetingData(newData);
         await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
             body: JSON.stringify(newData),
         });
     };
@@ -242,9 +239,24 @@ const MeetingPage = () => {
     };
 
     const handleMotionNav = (direction) => {
-        const newIndex = meetingData.currentMotionIndex + direction;
-        if (newIndex >= 0 && newIndex < meetingData.motionQueue.length) {
-            saveData({ ...meetingData, currentMotionIndex: newIndex });
+        // Get non-pending motions with their original indices
+        const visibleMotions = meetingData.motionQueue
+            .map((m, i) => ({ motion: m, fullIndex: i }))
+            .filter(x => x.motion.status !== 'pending');
+        
+        // Find current position in visible list
+        const currentVisibleIndex = visibleMotions.findIndex(
+            x => x.fullIndex === meetingData.currentMotionIndex
+        );
+        
+        // Calculate new position in visible list
+        const newVisibleIndex = currentVisibleIndex + direction;
+        
+        // Check bounds against visible motions only
+        if (newVisibleIndex >= 0 && newVisibleIndex < visibleMotions.length) {
+            // Get the actual full index from the visible motion
+            const newFullIndex = visibleMotions[newVisibleIndex].fullIndex;
+            saveData({ ...meetingData, currentMotionIndex: newFullIndex });
         }
     };
 
@@ -357,7 +369,10 @@ const MeetingPage = () => {
             setMeetingData(updated);
             await fetch(`http://localhost:5002/api/meetings/${meetingId}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
                 body: JSON.stringify(updated),
             });
         } catch (e) {
@@ -401,12 +416,6 @@ const MeetingPage = () => {
             if (data.votingComplete && data.motion) {
                 setVotingResults(data.motion);
                 setShowVotingResults(true);
-                
-                setTimeout(() => {
-                    setShowVotingResults(false);
-                    setVotingResults(null);
-                    fetchMeetingData();
-                }, 5000);
             }
 
             // Update UI with latest data
@@ -434,7 +443,11 @@ const MeetingPage = () => {
                 {showVotingResults && votingResults && (
                     <VotingResults 
                         motion={votingResults} 
-                        onClose={() => setShowVotingResults(false)}
+                        onClose={() => {
+                            setShowVotingResults(false);
+                            setVotingResults(null);
+                            fetchMeetingData();
+                        }}
                     />
                 )}
                 <Taskbar />
@@ -462,7 +475,11 @@ const MeetingPage = () => {
             {showVotingResults && votingResults && (
                 <VotingResults 
                     motion={votingResults} 
-                    onClose={() => setShowVotingResults(false)}
+                    onClose={() => {
+                        setShowVotingResults(false);
+                        setVotingResults(null);
+                        fetchMeetingData();
+                    }}
                 />
             )}
             {showPendingMotions && (
