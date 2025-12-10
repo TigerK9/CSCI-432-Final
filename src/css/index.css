@@ -9,6 +9,12 @@ html, body, #root {
     padding: 0;
 }
 
+/* Prevent overscroll background color mismatch */
+html {
+    background: #9DB4AB;
+    overscroll-behavior: none;
+}
+
 * {
     box-sizing: border-box;
 }
