@@ -102,10 +102,15 @@
 }
 
 .meeting-name {
+    padding-top: 6px;
     font-weight: bold;
     font-size: 1.1rem;
     color: #333;
-    align-self: flex-start;
+    text-align: center;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .meeting-description {
@@ -117,6 +122,9 @@
     color: #555;
     font-size: 0.95rem;
     padding: 0.5rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .meeting-datetime {

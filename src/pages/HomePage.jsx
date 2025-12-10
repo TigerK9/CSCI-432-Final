@@ -95,10 +95,10 @@ const NewMeetingModal = ({ isOpen, onClose, onCreateMeeting, onJoinMeeting }) =>
           <h2>Create a New Meeting</h2>
           <form id="meetingForm" onSubmit={handleSubmit}>
             <label htmlFor="meetingName">Meeting Name:</label>
-            <input type="text" id="meetingName" name="meetingName" required />
+            <input type="text" id="meetingName" name="meetingName" required maxLength={30} />
 
             <label htmlFor="meetingDescription">Description:</label>
-            <textarea id="meetingDescription" name="meetingDescription" rows="3" placeholder="What is this meeting about?"></textarea>
+            <textarea id="meetingDescription" name="meetingDescription" rows="3" placeholder="What is this meeting about?" maxLength={150}></textarea>
 
             <label htmlFor="meetingDate">Date & Time:</label>
             <input type="datetime-local" id="meetingDate" name="meetingDate" required />
