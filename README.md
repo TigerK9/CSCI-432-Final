@@ -10,7 +10,7 @@
 
 ## 🎥 Video Demo
 
-**[Watch the Demo on YouTube](DUMMYLINK)**
+**[Watch the Demo on YouTube](https://www.youtube.com/watch?v=B315Vkx3068)**
 
 A walkthrough of the RONR Meeting Platform showcasing the chairman and member views, motion workflow, and real-time voting features.
 
